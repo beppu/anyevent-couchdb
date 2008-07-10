@@ -8,7 +8,7 @@ WriteMakefile (
   ABSTRACT_FROM => 'lib/AnyEvent/CouchDB.pm',
   EXE_FILES     => [ ],
   PREREQ_PM     => {
-    'AnyEvent::HTTP' => 0,
+    'AnyEvent::HTTP' => 1.03,
     'CouchDB::View'  => 0,
     'JSON::XS'       => 0,
   },
