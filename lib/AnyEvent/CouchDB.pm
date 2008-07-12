@@ -101,7 +101,7 @@ AnyEvent::CouchDB is a non-blocking CouchDB client based on jquery.couch.js.
 
 =head2 Related Modules
 
-L<AnyEvent::CouchDB::DB>, L<AnyEvent::HTTP>, L<AnyEvent>
+L<AnyEvent::CouchDB::Database>, L<AnyEvent::HTTP>, L<AnyEvent>
 
 =head2 Other CouchDB-related Perl Modules
 
