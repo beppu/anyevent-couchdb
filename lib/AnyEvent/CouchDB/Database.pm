@@ -1,4 +1,4 @@
-package AnyEvent::CouchDB::DB;
+package AnyEvent::CouchDB::Database;
 
 use strict;
 use warnings;
@@ -31,8 +31,9 @@ our $query = sub { "?" };
 our $code_to_string = sub {
   ref($_[0])
     ? sprintf 'do { my $CODE1; %s; $CODE1 }',
-      Data::Dump::Streamer->new->Data($_[0])->Out;
+      Data::Dump::Streamer->new->Data($_[0])->Out
     : $_[0]
+    ;
 };
 
 sub new {

@@ -6,7 +6,7 @@ our $VERSION = '0.99';
 
 use JSON::XS;
 use AnyEvent::HTTP;
-use AnyEvent::CouchDB::DB;
+use AnyEvent::CouchDB::Database;
 use URI::Escape;
 
 # TODO - add error handling
@@ -34,7 +34,7 @@ sub all_dbs {
 sub db {
   my ($self, $name) = @_;
   my $uri = $self->{url} . "/" . uri_escape($name) . "/";
-  AnyEvent::CouchDB::DB->new($name, $uri);
+  AnyEvent::CouchDB::Database->new($name, $uri);
 }
 
 sub info {
