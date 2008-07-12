@@ -5,7 +5,7 @@ use warnings;
 use JSON::XS;
 use AnyEvent::HTTP;
 use Data::Dump::Streamer;
-use URI::Escape;
+use URI::Escape 'uri_escape_utf8';
 
 # TODO - add error handling similar to what's in jquery.couch.js
 # TODO - (but make it appropriate to perl)
@@ -106,7 +106,7 @@ sub save_doc {
   my ($self, $doc, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
   my ($method, $uri);
-  if (defined $doc->{_id}) {
+  if (not defined $doc->{_id}) {
     $method = 'POST';
     $uri    = $self->uri;
   } else {
@@ -116,6 +116,7 @@ sub save_doc {
   http_request(
     $method => $uri.$query->($options),
     headers => { 'Content-Type' => 'application/json' },
+    body    => encode_json($doc),
     $cb
   );
   $cv;
