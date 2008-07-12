@@ -67,7 +67,11 @@ AnyEvent::CouchDB - a non-blocking CouchDB client based on jquery.couch.js
 
 =head1 SYNOPSIS
 
+  use Data::Dump 'pp';
   my $couch = AnyEvent::CouchDB->new('http://localhost:5984/');
+  print pp( $couch->all_dbs->recv ), "\n";
+  print pp( $couch->info->recv    ), "\n";
+
   my $db = $couch->db('database');
 
 =head1 DESCRIPTION
