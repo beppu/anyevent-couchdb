@@ -10,6 +10,8 @@ use URI::Escape 'uri_escape_utf8';
 # TODO - add error handling similar to what's in jquery.couch.js
 # TODO - (but make it appropriate to perl)
 our $cvcb = sub {
+  my ($options, $status) = @_;
+  $status ||= 200;
   my $cv = AnyEvent->condvar;
   my $cb = sub {
     my $data;
@@ -33,7 +35,7 @@ our $code_to_string = sub {
     ? sprintf 'do { my $CODE1; %s; $CODE1 }',
       Data::Dump::Streamer->new->Data($_[0])->Out
     : $_[0] ;
-  ### ^-taken from CouchDB::View::Document-^ ###
+  # ^- taken from CouchDB::View::Document ------^
 };
 
 sub new {
@@ -158,6 +160,11 @@ sub view {
   my ($cv, $cb) = $cvcb->($options);
   http_get($self->uri."_view/".$name.$query->($options), $cb);
   $cv;
+}
+
+sub search {
+  my ($self, $query, $options) = @_;
+  warn "NOT IMPLEMENTED YET";
 }
 
 1;
