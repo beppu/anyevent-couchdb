@@ -1,0 +1,2 @@
+#!/bin/bash
+${1:-vim} -p lib/AnyEvent/CouchDB.pm lib/AnyEvent/CouchDB/Database.pm
