@@ -159,3 +159,73 @@ sub view {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+AnyEvent::CouchDB::DB - an object representing a CouchDB database
+
+=head1 SYNOPSIS
+
+  use AnyEvent::CouchDB;
+  use Data::Dump 'pp';
+
+  my $couch = AnyEvent::CouchDB->new;
+  my $db    = $couch->db('database');
+
+  print pp($db->info->recv), "\n";
+  my $cv = $db->save_doc({ just => 'give', me => 'a', hashref => { } });
+  #
+  # do other time-consuming operations
+  #
+  $cv->recv;  # when recv returns, the couchdb request finished
+
+=head1 DESCRIPTION
+
+Objects of this class represent a single CouchDB database.
+
+=head1 API
+
+=head2 General
+
+=head3 new
+
+=head3 name
+
+=head3 uri
+
+=head2 Database Level Operations
+
+=head3 create
+
+=head3 drop
+
+=head3 info
+
+=head3 compact
+
+=head2 Document Level Operations
+
+=head3 open_doc
+
+=head3 save_doc
+
+=head3 remove_doc
+
+=head2 Database Queries
+
+=head3 query
+
+Ad-hoc query - give it an arbitrary map and reduce function
+
+=head3 view
+
+View query - use map/reduce functions that have been defined in design
+documents
+
+=head3 search
+
+NOT IMPLEMENTED YET - It'll be a full-text search
+
+=cut
