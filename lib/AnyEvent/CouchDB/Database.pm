@@ -98,7 +98,7 @@ sub all_docs {
 sub open_doc {
   my ($self, $doc_id, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  http_get($self->uri.uri_escape($doc_id).$query->($options), $cb);
+  http_get($self->uri.uri_escape_utf8($doc_id).$query->($options), $cb);
   $cv;
 }
 
@@ -111,7 +111,7 @@ sub save_doc {
     $uri    = $self->uri;
   } else {
     $method = 'PUT';
-    $uri    = $self->uri.uri_escape($doc->{_id});
+    $uri    = $self->uri.uri_escape_utf8($doc->{_id});
   }
   http_request(
     $method => $uri.$query->($options),
@@ -126,7 +126,7 @@ sub remove_doc {
   die("Document is missing _id!") unless (defined $doc->{_id});
   my ($cv, $cb) = $cvcb->($options);
   http_request(
-    DELETE  => $self->uri.uri_escape($doc->{_id}).$query->({ rev => $doc->{_rev} }),
+    DELETE  => $self->uri.uri_escape_utf8($doc->{_id}).$query->({ rev => $doc->{_rev} }),
     $cb
   );
   $cv;
