@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use JSON::XS;
 use AnyEvent::HTTP;
-use CouchDB::View::Document;
+use Data::Dump::Streamer;
 use URI::Escape;
 
 # TODO - add error handling similar to what's in jquery.couch.js 
@@ -26,7 +26,9 @@ my $cvcb = sub {
 };
 
 # TODO - encode cgi params that couchdb expects
-my $encode = sub { "?" };
+my $query = sub { "?" };
+
+my $code = sub { $_[0] };
 
 sub new {
   my ($class, $name, $uri) = @_;
@@ -83,14 +85,14 @@ sub info {
 sub all_docs {
   my ($self, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  http_get($self->uri."_all_docs".$encode->($options), $cb);
+  http_get($self->uri."_all_docs".$query->($options), $cb);
   $cv;
 }
 
 sub open_doc {
   my ($self, $doc_id, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  http_get($self->uri.uri_escape($doc_id).$encode->($options), $cb);
+  http_get($self->uri.uri_escape($doc_id).$query->($options), $cb);
   $cv;
 }
 
@@ -106,7 +108,7 @@ sub save_doc {
     $uri    = $self->uri.uri_escape($doc->{_id});
   }
   http_request(
-    $method => $uri.$encode->($options),
+    $method => $uri.$query->($options),
     headers => { 'Content-Type' => 'application/json' },
     $cb
   );
@@ -118,7 +120,7 @@ sub remove_doc {
   die("Document is missing _id!") unless (defined $doc->{_id});
   my ($cv, $cb) = $cvcb->($options);
   http_request(
-    DELETE  => $self->uri.uri_escape($doc->{_id}).$encode->({ rev => $doc->{_rev} }),
+    DELETE  => $self->uri.uri_escape($doc->{_id}).$query->({ rev => $doc->{_rev} }),
     $cb
   );
   $cv;
@@ -131,13 +133,13 @@ sub query {
   # TODO - support perl based map and reduce functions via CouchDB::View
   my $body = {
     language => $language,
-    map      => $map_fun,
+    map      => $code->($map_fun),
   };
   if ($reduce_fun) {
-    $body->{reduce} = $reduce_fun;
+    $body->{reduce} = $code->($reduce_fun);
   }
   http_request(
-    POST    => $self->uri.'_temp_view'.$encode->($options),
+    POST    => $self->uri.'_temp_view'.$query->($options),
     headers => { 'Content-Type' => 'application/json' },
     body    => encode_json($body),
     $cb
@@ -148,7 +150,7 @@ sub query {
 sub view {
   my ($self, $name, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  http_get($self->uri."_view/".$name.$encode->($options), $cb);
+  http_get($self->uri."_view/".$name.$query->($options), $cb);
   $cv;
 }
 
