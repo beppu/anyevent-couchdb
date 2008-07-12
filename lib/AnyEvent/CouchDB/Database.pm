@@ -165,7 +165,7 @@ __END__
 
 =head1 NAME
 
-AnyEvent::CouchDB::DB - an object representing a CouchDB database
+AnyEvent::CouchDB::Database - an object representing a CouchDB database
 
 =head1 SYNOPSIS
 
