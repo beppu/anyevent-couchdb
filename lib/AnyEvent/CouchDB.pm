@@ -72,7 +72,24 @@ AnyEvent::CouchDB - a non-blocking CouchDB client based on jquery.couch.js
 
 =head1 DESCRIPTION
 
+AnyEvent::CouchDB is a non-blocking CouchDB client based on jquery.couch.js.
+
 =head1 API
+
+=head2 Object Construction
+
+=head3 $couch = AnyEvent::CouchDB->new($url)
+
+=head3 $db = $couch->db($name)
+
+=head2 Queries and Actions
+
+=head3 $couch->all_dbs([ \%options ])
+
+=head3 $couch->info([ \%options ])
+
+=head3 $couch->replicate($source, $target, [ \%options ])
+
 
 =head1 SEE ALSO
 
