@@ -7,11 +7,11 @@ use AnyEvent::HTTP;
 use Data::Dump::Streamer;
 use URI::Escape;
 
-# TODO - add error handling similar to what's in jquery.couch.js 
+# TODO - add error handling similar to what's in jquery.couch.js
 # TODO - (but make it appropriate to perl)
-my $cvcb = sub {
+our $cvcb = sub {
   my $cv = AnyEvent->condvar;
-  my $cb = sub { 
+  my $cb = sub {
     my $data;
     eval {
       $data = decode_json($_[0]);
@@ -26,9 +26,14 @@ my $cvcb = sub {
 };
 
 # TODO - encode cgi params that couchdb expects
-my $query = sub { "?" };
+our $query = sub { "?" };
 
-my $code = sub { $_[0] };
+our $code_to_string = sub {
+  ref($_[0])
+    ? sprintf 'do { my $CODE1; %s; $CODE1 }',
+      Data::Dump::Streamer->new->Data($_[0])->Out;
+    : $_[0]
+};
 
 sub new {
   my ($class, $name, $uri) = @_;
@@ -129,14 +134,13 @@ sub remove_doc {
 sub query {
   my ($self, $map_fun, $reduce_fun, $language, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  $language ||= 'javascript';
-  # TODO - support perl based map and reduce functions via CouchDB::View
+  $language ||= (ref($map_fun)) ? 'text/perl' : 'javascript';
   my $body = {
     language => $language,
-    map      => $code->($map_fun),
+    map      => $code_to_string->($map_fun),
   };
   if ($reduce_fun) {
-    $body->{reduce} = $code->($reduce_fun);
+    $body->{reduce} = $code_to_string->($reduce_fun);
   }
   http_request(
     POST    => $self->uri.'_temp_view'.$query->($options),
