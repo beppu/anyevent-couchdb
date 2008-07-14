@@ -12,7 +12,8 @@ use URI::Escape;
 # TODO - add error handling
 # TODO - let user configure success and error if they so desire
 my $cvcb = sub {
-  my $options = shift;
+  my ($options, $status) = @_;
+  $status ||= 200;
   my $cv = AnyEvent->condvar;
   my $cb = sub { $cv->send(decode_json($_[0])) };
   ($cv, $cb);
