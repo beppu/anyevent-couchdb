@@ -108,7 +108,9 @@ L<AnyEvent::CouchDB::Database>, L<AnyEvent::HTTP>, L<AnyEvent>
 
 =head3 Client Libraries
 
-L<Net::CouchDb>
+L<Net::CouchDb>,
+L<CouchDB::Client>,
+L<POE::Component::CouchDB::Client>
 
 =head3 View Servers
 

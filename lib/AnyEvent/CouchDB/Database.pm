@@ -6,6 +6,7 @@ use JSON::XS;
 use AnyEvent::HTTP;
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
+use Scalar::Quote ':quote';
 
 # TODO - add error handling similar to what's in jquery.couch.js
 # TODO - (but make it appropriate to perl)
@@ -27,15 +28,34 @@ our $cvcb = sub {
   ($cv, $cb);
 };
 
-# TODO - encode cgi params that couchdb expects
-our $query = sub { "?" };
+our $query = sub { 
+  my $options = shift;
+  my @buf;
+  if (defined($options) && keys $options) {
+    for my $name (keys %$options) {
+      next if ($name eq 'error' || $name eq 'success');
+      my $value = $options->{$name};
+      if ($name eq 'start' || $name eq 'startkey' || $name eq 'endkey') {
+        $value = ref($value) ? encode_json($value) : quote($value);
+      }
+      push @buf, "$_=".uri_escape_utf8($value);
+    }
+  }
+  scalar(@buf)
+    ? '?' . join('&', @buf) 
+    : '';
+};
 
 our $code_to_string = sub {
   ref($_[0])
     ? sprintf 'do { my $CODE1; %s; $CODE1 }',
       Data::Dump::Streamer->new->Data($_[0])->Out
-    : $_[0] ;
+    : $_[0];
   # ^- taken from CouchDB::View::Document ------^
+};
+
+our $json = sub {
+  ref($_[0]) ? encode_json($_[0]) : $_[0];
 };
 
 sub new {
@@ -93,7 +113,7 @@ sub info {
 sub all_docs {
   my ($self, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  http_get($self->uri."_all_docs".$query->($options), $cb);
+  http_get($self->uri.'_all_docs'.$query->($options), $cb);
   $cv;
 }
 
@@ -118,7 +138,7 @@ sub save_doc {
   http_request(
     $method => $uri.$query->($options),
     headers => { 'Content-Type' => 'application/json' },
-    body    => encode_json($doc),
+    body    => $json->($doc),
     $cb
   );
   $cv;
@@ -131,6 +151,17 @@ sub remove_doc {
   http_request(
     DELETE  => $self->uri.uri_escape_utf8($doc->{_id}).$query->({ rev => $doc->{_rev} }),
     $cb
+  );
+  $cv;
+}
+
+sub bulk_docs {
+  my ($self, $docs, $options) = @_;
+  my ($cv, $cb) = $cvcb->($options);
+  http_request(
+    POST    => $self->uri.'_bulk_docs',
+    headers => { 'Content-Type' => 'application/json' },
+    body    => $json->($docs),
   );
   $cv;
 }
