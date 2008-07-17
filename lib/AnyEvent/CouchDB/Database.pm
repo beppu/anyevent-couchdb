@@ -56,7 +56,7 @@ sub uri {
 
 sub compact {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = $cvcb->($options, 202);
   http_request(
     POST    => ($self->uri . "_compact"),
     headers => { 'Content-Type' => 'application/json' },
