@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use JSON::XS;
 use AnyEvent::HTTP;
+use Data::Dump 'pp';
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
 
@@ -21,14 +22,14 @@ our $cvcb = sub {
   # default error handler croaks w/ http status code, error, and reason
   my $error = $options->{error} || sub {
     my ($status, $error, $reason) = @_;
-    $cv->croak($status, $error, $reason);
+    $cv->croak(pp([$status, $error, $reason]));
   };
 
   my $cb = sub {
     my ($body, $header) = @_;
     my $resp;
     eval { $resp = decode_json($body); };
-    $cv->croak($@, $body, encode_json($header)) if ($@);
+    $cv->croak(pp(['decode_error', $@, $body, encode_json($header)])) if ($@);
     if ($header->{Status} == $status) {
       $success->($resp);
     } else {
@@ -45,8 +46,8 @@ our $query = sub {
     for my $name (keys %$options) {
       next if ($name eq 'error' || $name eq 'success');
       my $value = $options->{$name};
-      if ($name eq 'start' || $name eq 'startkey' || $name eq 'endkey') {
-        $value = ref($value) ? encode_json($value) : $value;
+      if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
+        $value = ref($value) ? encode_json($value) : qq{"$value"};
       }
       push @buf, "$name=".uri_escape_utf8($value);
     }
@@ -123,7 +124,6 @@ sub info {
 sub all_docs {
   my ($self, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  warn $query->($options);
   http_get($self->uri.'_all_docs'.$query->($options), $cb);
   $cv;
 }
