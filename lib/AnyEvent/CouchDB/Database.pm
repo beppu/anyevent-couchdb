@@ -6,23 +6,33 @@ use JSON::XS;
 use AnyEvent::HTTP;
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
-use Scalar::Quote ':quote';
 
-# TODO - add error handling similar to what's in jquery.couch.js
-# TODO - (but make it appropriate to perl)
 our $cvcb = sub {
   my ($options, $status) = @_;
   $status ||= 200;
   my $cv = AnyEvent->condvar;
+
+  # default success handler sends back decoded json response
+  my $success = $options->{success} || sub {
+    my ($resp) = @_;
+    $cv->send($resp);
+  };
+
+  # default error handler croaks w/ http status code, error, and reason
+  my $error = $options->{error} || sub {
+    my ($status, $error, $reason) = @_;
+    $cv->croak($status, $error, $reason);
+  };
+
   my $cb = sub {
-    my $data;
-    eval {
-      $data = decode_json($_[0]);
-    };
-    if ($@) {
-      $cv->croak($@, $_[0], encode_json($_[1]));
+    my ($body, $header) = @_;
+    my $resp;
+    eval { $resp = decode_json($body); };
+    $cv->croak($@, $body, encode_json($header)) if ($@);
+    if ($header->{Status} == $status) {
+      $success->($resp);
     } else {
-      $cv->send($data);
+      $error->($header->{Status}, $resp->{error}, $resp->{reason});
     }
   };
   ($cv, $cb);
@@ -31,17 +41,17 @@ our $cvcb = sub {
 our $query = sub { 
   my $options = shift;
   my @buf;
-  if (defined($options) && keys $options) {
+  if (defined($options) && keys %$options) {
     for my $name (keys %$options) {
       next if ($name eq 'error' || $name eq 'success');
       my $value = $options->{$name};
       if ($name eq 'start' || $name eq 'startkey' || $name eq 'endkey') {
-        $value = ref($value) ? encode_json($value) : quote($value);
+        $value = ref($value) ? encode_json($value) : $value;
       }
-      push @buf, "$_=".uri_escape_utf8($value);
+      push @buf, "$name=".uri_escape_utf8($value);
     }
   }
-  scalar(@buf)
+  (@buf)
     ? '?' . join('&', @buf) 
     : '';
 };
@@ -113,6 +123,7 @@ sub info {
 sub all_docs {
   my ($self, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
+  warn $query->($options);
   http_get($self->uri.'_all_docs'.$query->($options), $cb);
   $cv;
 }

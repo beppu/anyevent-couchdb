@@ -11,7 +11,6 @@ WriteMakefile (
     'AnyEvent::HTTP' => 1.03,
     'CouchDB::View'  => 0,
     'JSON::XS'       => 0,
-    'Scalar::Quote'  => 0,
   },
   depend => { distmeta => 'metamunge' }
 );
