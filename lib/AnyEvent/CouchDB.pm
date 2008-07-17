@@ -6,6 +6,7 @@ our $VERSION = '0.99';
 
 use JSON::XS;
 use AnyEvent::HTTP;
+use AnyEvent::CouchDB::Database;
 use URI::Escape;
 
 our $cvcb = sub {
@@ -38,8 +39,6 @@ our $cvcb = sub {
   };
   ($cv, $cb);
 };
-
-use AnyEvent::CouchDB::Database;
 
 sub new {
   my ($class, $url) = @_;
