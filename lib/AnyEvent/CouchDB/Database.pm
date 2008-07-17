@@ -242,40 +242,91 @@ Objects of this class represent a single CouchDB database.
 
 =head3 $db = AnyEvent::CouchDB::Database->new($name, $uri)
 
+This method takes a name and a URI, and constructs an object representing a
+CouchDB database.  The name should be conservative in the characters it uses,
+because it needs to be both URI friendly and portable across filesystems.
+Also, the URI that you pass in should contain a trailing slash.
+
 =head3 $db->name
 
+This method returns the name of the database.
+
 =head3 $db->uri
+
+This method returns the base URI of the database.
 
 =head2 Database Level Operations
 
 =head3 $cv = $db->create
 
+This method is used to create a CouchDB database.  It returns an L<AnyEvent>
+condvar which you are expected to call C<recv> on.
+
 =head3 $cv = $db->drop
+
+This method is used to drop a CouchDB database, and it returns a condvar.
 
 =head3 $cv = $db->info
 
+This method is used to request a hashref of info about the current CouchDB
+database, and it returns a condvar.
+
 =head3 $cv = $db->compact
+
+This method is used to request that the current CouchDB database
+be compacted, and it returns a condvar.
 
 =head2 Document Level Operations
 
-=head3 $cv = $db->open_doc($id)
+=head3 $cv = $db->all_docs([ \%options ])
 
-=head3 $cv = $db->save_doc($doc)
+This method is used to request a hashref that contains an index of all the 
+documents in the database.  Note that you B<DO NOT> get the actual documents.
+Instead, you do get its C<id> and its C<rev>, so that you can fetch it later.
 
-=head3 $cv = $db->remove_doc($id)
+=head3 $cv = $db->open_doc($id, [ \%options ])
 
-=head3 $cv = $db->bulk_docs(\@docs)
+This method is used to request a single CouchDB document by its C<id>, and
+it returns a condvar.
+
+=head3 $cv = $db->save_doc($doc, [ \%options ])
+
+This method can be used to either create a new CouchDB document or update an
+existing CouchDB document.  It returns a condvar.
+
+=head3 $cv = $db->remove_doc($doc, [ \%options ])
+
+This method is used to remove a document from the database, and it returns a
+condvar.
+
+=head3 $cv = $db->bulk_docs(\@docs, [ \%options ])
+
+This method requests that many create, update, and delete operations be
+performed in one shot.  You pass it an arrayref of documents, and it'll
+return a condvar.
 
 =head2 Database Queries
 
-=head3 $cv = $db->query($map, $reduce, $options)
+=head3 $cv = $db->query($map, [ $reduce ], [ $language ], [ \%options ])
 
-Ad-hoc query - give it an arbitrary map and reduce function
+This method lets you send ad-hoc queries to CouchDB.  You have to at least give
+it a map function.  If you pass in a string, it'll assume the function is
+written in JavaScript (unless you tell it otherwise).  If you pass in a
+coderef, it will be turned into a string, and you had better have a Perl-based
+view server (like L<CouchDB::View>) installed.  The same goes for the optional
+reduce function.  The 3rd parameter lets you explicitly tell this method what
+language the map and reduce functions are written in.  The final parameter,
+C<\%options>, can be used to manipulate the result-set in standard ways.
 
-=head3 $cv = $db->view($view, $options)
+This method returns a condvar that you're expected to call C<recv> on.
 
-View query - use map/reduce functions that have been defined in design
-documents
+=head3 $cv = $db->view($name, [ \%options ])
+
+This method lets you query views that have been predefined in CouchDB design
+documents.  You give it a name which is of the form "$design_doc/$view", and
+you may pass in C<\%options> as well to manipulate the result-set.
+
+This method returns a condvar that you're expected to call C<recv> on.
 
 =head1 AUTHOR
 
