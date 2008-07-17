@@ -9,13 +9,34 @@ use AnyEvent::HTTP;
 use AnyEvent::CouchDB::Database;
 use URI::Escape;
 
-# TODO - add error handling
-# TODO - let user configure success and error if they so desire
-my $cvcb = sub {
+our $cvcb = sub {
   my ($options, $status) = @_;
   $status ||= 200;
   my $cv = AnyEvent->condvar;
-  my $cb = sub { $cv->send(decode_json($_[0])) };
+
+  # default success handler sends back decoded json response
+  my $success = $options->{success} || sub {
+    my ($response) = @_;
+    $cv->send($response);
+  };
+
+  # default error handler croaks w/ http headers and response
+  my $error = $options->{error} || sub {
+    my ($headers, $response) = @_;
+    $cv->croak(pp([$headers, $response]));
+  };
+
+  my $cb = sub {
+    my ($body, $headers) = @_;
+    my $response;
+    eval { $response = decode_json($body); };
+    $cv->croak(pp(['decode_error', $@, $body, encode_json($headers)])) if ($@);
+    if ($headers->{Status} == $status) {
+      $success->($response);
+    } else {
+      $error->($headers, $response);
+    }
+  };
   ($cv, $cb);
 };
 

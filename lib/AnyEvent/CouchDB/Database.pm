@@ -2,42 +2,14 @@ package AnyEvent::CouchDB::Database;
 
 use strict;
 use warnings;
+no  warnings 'once';
 use JSON::XS;
 use AnyEvent::HTTP;
 use Data::Dump 'pp';
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
 
-our $cvcb = sub {
-  my ($options, $status) = @_;
-  $status ||= 200;
-  my $cv = AnyEvent->condvar;
-
-  # default success handler sends back decoded json response
-  my $success = $options->{success} || sub {
-    my ($resp) = @_;
-    $cv->send($resp);
-  };
-
-  # default error handler croaks w/ http status code, error, and reason
-  my $error = $options->{error} || sub {
-    my ($status, $error, $reason) = @_;
-    $cv->croak(pp([$status, $error, $reason]));
-  };
-
-  my $cb = sub {
-    my ($body, $header) = @_;
-    my $resp;
-    eval { $resp = decode_json($body); };
-    $cv->croak(pp(['decode_error', $@, $body, encode_json($header)])) if ($@);
-    if ($header->{Status} == $status) {
-      $success->($resp);
-    } else {
-      $error->($header->{Status}, $resp->{error}, $resp->{reason});
-    }
-  };
-  ($cv, $cb);
-};
+our $cvcb = $AnyEvent::CouchDB::cvcb;
 
 our $query = sub { 
   my $options = shift;
