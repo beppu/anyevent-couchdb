@@ -240,37 +240,39 @@ Objects of this class represent a single CouchDB database.
 
 =head2 General
 
-=head3 new
+=head3 $db = AnyEvent::CouchDB::Database->new($name, $uri)
 
-=head3 name
+=head3 $db->name
 
-=head3 uri
+=head3 $db->uri
 
 =head2 Database Level Operations
 
-=head3 create
+=head3 $cv = $db->create
 
-=head3 drop
+=head3 $cv = $db->drop
 
-=head3 info
+=head3 $cv = $db->info
 
-=head3 compact
+=head3 $cv = $db->compact
 
 =head2 Document Level Operations
 
-=head3 open_doc
+=head3 $cv = $db->open_doc($id)
 
-=head3 save_doc
+=head3 $cv = $db->save_doc($doc)
 
-=head3 remove_doc
+=head3 $cv = $db->remove_doc($id)
+
+=head3 $cv = $db->bulk_docs(\@docs)
 
 =head2 Database Queries
 
-=head3 query
+=head3 $cv = $db->query($map, $reduce, $options)
 
 Ad-hoc query - give it an arbitrary map and reduce function
 
-=head3 view
+=head3 $cv = $db->view($view, $options)
 
 View query - use map/reduce functions that have been defined in design
 documents

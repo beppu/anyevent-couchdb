@@ -117,6 +117,9 @@ The main thing you have to remember is that all the data retrieval methods
 return an AnyEvent condvar, C<$cv>.  If you want the actual data from the
 request, it's up to you to call C<recv> on it.
 
+Also note that C<recv> will throw an exception if the request fails, so be
+prepared to catch exceptions where appropriate.
+
 =head1 API
 
 =head2 Object Construction
@@ -135,13 +138,13 @@ This is the object that you'll use to work with CouchDB documents.
 
 =head2 Queries and Actions
 
-=head3 $cv = $couch->all_dbs([ \%options ])
+=head3 $cv = $couch->all_dbs()
 
 This method requests an arrayref that contains the names of all the databases
 hosted on the current CouchDB server.  It returns an AnyEvent condvar that
 you'll be expected to call C<recv> on to get the data back.
 
-=head3 $cv = $couch->info([ \%options ])
+=head3 $cv = $couch->info()
 
 This method requests a hashref of info about the current CouchDB server and
 returns a condvar that you should call C<recv> on.  The hashref that's returned
