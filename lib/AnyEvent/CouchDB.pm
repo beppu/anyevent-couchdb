@@ -137,7 +137,7 @@ Work with individual CouchDB documents;
 
 Query a view:
 
-  $db->view('user/all', { startkey => 'b', endkey => 'bzzzz' })->recv
+  $db->view('users/all', { startkey => 'b', endkey => 'bzzzz' })->recv
 
 =head1 DESCRIPTION
 
