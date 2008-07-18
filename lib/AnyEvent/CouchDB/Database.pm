@@ -210,14 +210,12 @@ AnyEvent::CouchDB::Database - an object representing a CouchDB database
 =head1 SYNOPSIS
 
   use AnyEvent::CouchDB;
-  use Data::Dump 'pp';
-
-  my $couch = AnyEvent::CouchDB->new;
-  my $db    = $couch->db('database');
-
-  print pp($db->info->recv), "\n";
-  my $cv = $db->save_doc({ just => 'give', me => 'a', hashref => { } });
-  my $result = $cv->recv;
+  $db = couchdb('bavl');
+  my $map = 'function(doc){ 
+    if(doc.type == "Phrase"){ emit(null, doc) } 
+  }';                      
+  my $phrases = $db->query($map)->recv;
+  my $recordings = $db->view('recordings/all')->recv;
 
 =head1 DESCRIPTION
 
