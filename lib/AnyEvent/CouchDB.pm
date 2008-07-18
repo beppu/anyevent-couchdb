@@ -10,6 +10,19 @@ use AnyEvent::CouchDB::Database;
 use URI::Escape;
 use Data::Dump 'pp';
 
+use Exporter;
+use base 'Exporter';
+
+our @EXPORT = qw(couch couchdb);
+
+sub couch {
+  AnyEvent::CouchDB->new(@_);
+}
+
+sub couchdb {
+  AnyEvent::CouchDB->new->db(@_);
+}
+
 our $cvcb = sub {
   my ($options, $status) = @_;
   $status ||= 200;
