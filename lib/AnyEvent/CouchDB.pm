@@ -8,6 +8,7 @@ use JSON::XS;
 use AnyEvent::HTTP;
 use AnyEvent::CouchDB::Database;
 use URI::Escape;
+use File::Basename;
 use Data::Dump 'pp';
 
 use Exporter;
@@ -20,7 +21,15 @@ sub couch {
 }
 
 sub couchdb {
-  AnyEvent::CouchDB->new->db(@_);
+  my $db = shift;
+  if ($db =~ /^http:/) {
+    my $uri  = $db;
+    my $name = basename($db);
+    $uri .= '/' if ($uri !~ /\/$/);
+    AnyEvent::CouchDB::Database->new($name, $uri);
+  } else {
+    AnyEvent::CouchDB->new->db($db);
+  }
 }
 
 our $cvcb = sub {
@@ -56,27 +65,27 @@ our $cvcb = sub {
 
 sub new {
   my ($class, $url) = @_;
-  $url ||= 'http://localhost:5984';
+  $url ||= 'http://localhost:5984/';
   bless { url => $url } => $class;
 }
 
 sub all_dbs {
   my ($self, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  http_get $self->{url}.'/_all_dbs', $cb;
+  http_get $self->{url}.'_all_dbs', $cb;
   $cv;
 }
 
 sub db {
   my ($self, $name) = @_;
-  my $uri = $self->{url} . "/" . uri_escape($name) . "/";
+  my $uri = $self->{url} . uri_escape($name) . "/";
   AnyEvent::CouchDB::Database->new($name, $uri);
 }
 
 sub info {
   my ($self, $options) = @_;
   my ($cv, $cb) = $cvcb->($options);
-  http_get $self->{url}.'/', $cb;
+  http_get $self->{url}, $cb;
   $cv;
 }
 
@@ -85,7 +94,7 @@ sub replicate {
   my ($cv, $cb) = $cvcb->($options);
   my $body = encode_json({ source => $source, target => $target });
   http_request(
-    POST    => $self->{url}.'/_replicate', 
+    POST    => $self->{url}.'_replicate', 
     headers => { 'Content-Type' => 'application/json' },
     body    => $body, 
     $cb
@@ -108,13 +117,25 @@ Getting information about a CouchDB server:
   use AnyEvent::CouchDB;
   use Data::Dump 'pp';
 
-  my $couch = AnyEvent::CouchDB->new;
+  my $couch = couch('http://localhost:5984/');
   print pp( $couch->all_dbs->recv ), "\n";
   print pp( $couch->info->recv    ), "\n";
 
 Get an object representing a CouchDB database:
 
   my $db = $couch->db('database');
+  $db    = couchdb('database');
+  $db    = couchdb('http://somewhere.com:7777/database/');
+
+Work with individual CouchDB documents;
+
+  my $user = $db->open_doc('~larry')->recv;
+  $user->{name} = "larry";
+  $db->save_doc($user)->recv;
+
+Query a view:
+
+  $db->view('user/all', { startkey => 'b', endkey => 'bzzzz' })->recv
 
 =head1 DESCRIPTION
 
@@ -126,6 +147,8 @@ if you want.
 Its API is based on jquery.couch.js, but we've adapted the API slightly so that
 it makes sense in an asynchronous Perl environment.
 
+=head2 AnyEvent condvars
+
 The main thing you have to remember is that all the data retrieval methods
 return an AnyEvent condvar, C<$cv>.  If you want the actual data from the
 request, it's up to you to call C<recv> on it.
@@ -133,16 +156,99 @@ request, it's up to you to call C<recv> on it.
 Also note that C<recv> will throw an exception if the request fails, so be
 prepared to catch exceptions where appropriate.
 
+=head2 The \%options Parameter
+
+Many data retrieval methods will take an optional C<\%options> hashref.
+Most of these options get turned into CGI query parameters.  The standard
+CouchDB parameters are as follows:
+
+=over 4
+
+=item key=keyvalue
+
+This lets you pick out one document with the specified key value.
+
+=item startkey=keyvalue
+
+This makes it so that lists start with a key value that is greater than or
+equal to the specified key value.
+
+=item startkey_docid=docid
+
+This makes it so that lists start with a document with the specified docid.
+
+=item endkey=keyvalue
+
+This makes it so that lists end with a key value that is less than or
+equal to the specified key value.
+
+=item count=max_rows_to_return
+
+This limits the number of results to the specified number or less.
+If count is set to 0, you won't get any rows, but you I<will> get
+the metadata for the request you made.
+
+=item update=boolean
+
+If you set C<update> to C<false>, CouchDB will skip doing any updating of a
+view.  This will speed up the request, but you might not see all the latest
+data.
+
+=item descending=boolean
+
+Views are sorted by their keys in ascending order.  However, if you set
+C<descending> to C<true>, they'll come back in descending order.
+
+=item skip=rows_to_skip
+
+The skip option should only be used with small values, as skipping a large
+range of documents this way is inefficient (it scans the index from the
+startkey and then skips N elements, but still needs to read all the index
+values to do that). For efficient paging use startkey and/or startkey_docid.
+
+=back
+
+
+You may also put subroutine references in the C<success> and C<error> keys of
+this hashref, and they will be called upon success or failure of the request.
+
+
+
+=head2 Documents Are Plain Hashrefs
+
+Finally, note that the CouchDB documents you get back are plain hashrefs.  They
+are not blessed into any kind of document class.  
+
+
 =head1 API
+
+=head2 Convenience Functions
+
+=head3 $couch = couch([ $url ]);
+
+This is a short-cut for:
+
+  AnyEvent::CouchDB->new($url)
+
+and it is exported by default.
+
+=head3 $db = couchdb([ $name_or_url ]);
+
+This function will construct an L<AnyEvent::CouchDB::Database> object for you.
+If you only give it a name, it'll assume that the CouchDB server is at
+L<http://localhost:5984/>.  You may also give it a full URL to the CouchDB
+database.
+
+This function is also exported by default.
 
 =head2 Object Construction
 
 =head3 $couch = AnyEvent::CouchDB->new([ $url ])
 
 This method will instantiate an object that represents a CouchDB server.
-By default, it connects to L<http://localhost:5984>, but you may explicitly
+By default, it connects to L<http://localhost:5984/>, but you may explicitly
 give it another URL if you want to connect to a CouchDB server on another
-server and/or a non-default port.
+server or a non-default port.
 
 =head3 $db = $couch->db($name)
 

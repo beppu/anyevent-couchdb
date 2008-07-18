@@ -95,7 +95,7 @@ sub compact {
 
 sub create {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = $cvcb->($options, 201);
   http_request(
     PUT     => $self->uri,
     headers => { 'Content-Type' => 'application/json' },
@@ -137,7 +137,7 @@ sub open_doc {
 
 sub save_doc {
   my ($self, $doc, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = $cvcb->($options, 201);
   my ($method, $uri);
   if (not defined $doc->{_id}) {
     $method = 'POST';
@@ -227,14 +227,13 @@ AnyEvent::CouchDB::Database - an object representing a CouchDB database
 
   print pp($db->info->recv), "\n";
   my $cv = $db->save_doc({ just => 'give', me => 'a', hashref => { } });
-  #
-  # do other time-consuming operations
-  #
-  $cv->recv;  # when recv returns, the couchdb request finished
+  my $result = $cv->recv;
 
 =head1 DESCRIPTION
 
-Objects of this class represent a single CouchDB database.
+Objects of this class represent a single CouchDB database.  This object is used
+create and drop databases as well as operate on the documents within the database.
+
 
 =head1 API
 
