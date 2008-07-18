@@ -8,6 +8,7 @@ use Data::Dump 'pp';
 my $couch = couch();
 my $bad   = couch('http://bad/');
 my $done  = AnyEvent->condvar;
+
 sub p(&) {
   $done->begin;
   my $code = shift;
@@ -20,6 +21,7 @@ sub p(&) {
   }
   $done->end;
 }
+
 async { print "hello, world\n" };
 for (1 .. 4) {
   async { p { ($couch->info->recv)    } };
@@ -28,6 +30,12 @@ for (1 .. 4) {
   async { p { ($bad->all_dbs->recv)   } };
 }
 async { print "hello, again, world\n" };
-async { $done->recv; exit };
+async { print "*** please be patient, and let the bad requests timeout. ***\n" };
+async { 
+  $done->recv;
+  print "----\n";
+  print "Did you see how the bad requests didn't stop the good requests?\n";
+  exit;
+};
 
 schedule;
