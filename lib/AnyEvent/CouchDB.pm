@@ -47,7 +47,7 @@ sub cvcb {
     }
   };
   ($cv, $cb);
-};
+}
 
 sub couch {
   AnyEvent::CouchDB->new(@_);
