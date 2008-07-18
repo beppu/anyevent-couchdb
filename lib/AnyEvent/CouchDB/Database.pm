@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use JSON::XS;
 use AnyEvent::HTTP;
-use Data::Dump 'pp';
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
 
