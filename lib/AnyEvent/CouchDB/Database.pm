@@ -8,36 +8,11 @@ use Data::Dump 'pp';
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
 
-our $cvcb = sub {
-  my ($options, $status) = @_;
-  $status ||= 200;
-  my $cv = AnyEvent->condvar;
-
-  # default success handler sends back decoded json response
-  my $success = $options->{success} || sub {
-    my ($resp) = @_;
-    $cv->send($resp);
-  };
-
-  # default error handler croaks w/ http headers and response
-  my $error = $options->{error} || sub {
-    my ($headers, $response) = @_;
-    $cv->croak(pp([$headers, $response]));
-  };
-
-  my $cb = sub {
-    my ($body, $headers) = @_;
-    my $response;
-    eval { $response = decode_json($body); };
-    $cv->croak(pp(['decode_error', $@, $body, encode_json($headers)])) if ($@);
-    if ($headers->{Status} == $status) {
-      $success->($response);
-    } else {
-      $error->($headers, $response);
-    }
-  };
-  ($cv, $cb);
-};
+{
+  # manual import ;-)
+  no strict 'refs';
+  *cvcb = \&AnyEvent::CouchDB::cvcb;
+}
 
 our $query = sub { 
   my $options = shift;
@@ -84,7 +59,7 @@ sub uri {
 
 sub compact {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options, 202);
+  my ($cv, $cb) = cvcb($options, 202);
   http_request(
     POST    => ($self->uri . "_compact"),
     headers => { 'Content-Type' => 'application/json' },
@@ -95,7 +70,7 @@ sub compact {
 
 sub create {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options, 201);
+  my ($cv, $cb) = cvcb($options, 201);
   http_request(
     PUT     => $self->uri,
     headers => { 'Content-Type' => 'application/json' },
@@ -106,7 +81,7 @@ sub create {
 
 sub drop {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_request(
     DELETE  => $self->uri,
     $cb
@@ -116,28 +91,43 @@ sub drop {
 
 sub info {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_get($self->uri, $cb);
   $cv;
 }
 
 sub all_docs {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_get($self->uri.'_all_docs'.$query->($options), $cb);
   $cv;
 }
 
 sub open_doc {
   my ($self, $doc_id, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_get($self->uri.uri_escape_utf8($doc_id).$query->($options), $cb);
   $cv;
 }
 
 sub save_doc {
   my ($self, $doc, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options, 201);
+  if ($options->{success}) {
+    my $orig = $options->{success};
+    $options->{success} = sub {
+      my ($resp) = @_;
+      $orig->($resp);
+      $doc->{_id}  = $resp->{id};
+      $doc->{_rev} = $resp->{rev};
+    };
+  } else {
+    $options->{success} = sub {
+      my ($resp) = @_;
+      $doc->{_id}  = $resp->{id};
+      $doc->{_rev} = $resp->{rev};
+    };
+  }
+  my ($cv, $cb) = cvcb($options, 201);
   my ($method, $uri);
   if (not defined $doc->{_id}) {
     $method = 'POST';
@@ -158,7 +148,7 @@ sub save_doc {
 sub remove_doc {
   my ($self, $doc, $options) = @_;
   die("Document is missing _id!") unless (defined $doc->{_id});
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_request(
     DELETE  => $self->uri.uri_escape_utf8($doc->{_id}).$query->({ rev => $doc->{_rev} }),
     $cb
@@ -168,7 +158,7 @@ sub remove_doc {
 
 sub bulk_docs {
   my ($self, $docs, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_request(
     POST    => $self->uri.'_bulk_docs',
     headers => { 'Content-Type' => 'application/json' },
@@ -179,7 +169,7 @@ sub bulk_docs {
 
 sub query {
   my ($self, $map_fun, $reduce_fun, $language, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   $language ||= (ref($map_fun) eq 'CODE') ? 'text/perl' : 'javascript';
   my $body = {
     language => $language,
@@ -199,7 +189,7 @@ sub query {
 
 sub view {
   my ($self, $name, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_get($self->uri."_view/".$name.$query->($options), $cb);
   $cv;
 }
@@ -233,7 +223,6 @@ AnyEvent::CouchDB::Database - an object representing a CouchDB database
 
 Objects of this class represent a single CouchDB database.  This object is used
 create and drop databases as well as operate on the documents within the database.
-
 
 =head1 API
 
@@ -292,6 +281,9 @@ it returns a condvar.
 
 This method can be used to either create a new CouchDB document or update an
 existing CouchDB document.  It returns a condvar.
+
+Note that upon success, C<$doc> will have its C<_id> and C<_rev> keys
+updated.  This allows you to save C<$doc> repeatedly using the same hashref.
 
 =head3 $cv = $db->remove_doc($doc, [ \%options ])
 

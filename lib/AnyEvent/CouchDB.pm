@@ -16,6 +16,39 @@ use base 'Exporter';
 
 our @EXPORT = qw(couch couchdb);
 
+sub cvcb {
+  my ($options, $status) = @_;
+  $status ||= 200;
+  my $cv = AnyEvent->condvar;
+
+  # default success handler sends back decoded json response
+  my $success = sub {
+    my ($resp) = @_;
+    $options->{success}->(@_) if ($options->{success});
+    $cv->send($resp);
+  };
+
+  # default error handler croaks w/ http headers and response
+  my $error = sub {
+    my ($headers, $response) = @_;
+    $options->{error}->(@_) if ($options->{error});
+    $cv->croak(pp([$headers, $response]));
+  };
+
+  my $cb = sub {
+    my ($body, $headers) = @_;
+    my $response;
+    eval { $response = decode_json($body); };
+    $cv->croak(pp(['decode_error', $@, $body, encode_json($headers)])) if ($@);
+    if ($headers->{Status} == $status) {
+      $success->($response);
+    } else {
+      $error->($headers, $response);
+    }
+  };
+  ($cv, $cb);
+};
+
 sub couch {
   AnyEvent::CouchDB->new(@_);
 }
@@ -32,37 +65,6 @@ sub couchdb {
   }
 }
 
-our $cvcb = sub {
-  my ($options, $status) = @_;
-  $status ||= 200;
-  my $cv = AnyEvent->condvar;
-
-  # default success handler sends back decoded json response
-  my $success = $options->{success} || sub {
-    my ($response) = @_;
-    $cv->send($response);
-  };
-
-  # default error handler croaks w/ http headers and response
-  my $error = $options->{error} || sub {
-    my ($headers, $response) = @_;
-    $cv->croak(pp([$headers, $response]));
-  };
-
-  my $cb = sub {
-    my ($body, $headers) = @_;
-    my $response;
-    eval { $response = decode_json($body); };
-    $cv->croak(pp(['decode_error', $@, $body, $headers])) if ($@);
-    if ($headers->{Status} == $status) {
-      $success->($response);
-    } else {
-      $error->($headers, $response);
-    }
-  };
-  ($cv, $cb);
-};
-
 sub new {
   my ($class, $url) = @_;
   $url ||= 'http://localhost:5984/';
@@ -71,7 +73,7 @@ sub new {
 
 sub all_dbs {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_get $self->{url}.'_all_dbs', $cb;
   $cv;
 }
@@ -84,14 +86,14 @@ sub db {
 
 sub info {
   my ($self, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   http_get $self->{url}, $cb;
   $cv;
 }
 
 sub replicate {
   my ($self, $source, $target, $options) = @_;
-  my ($cv, $cb) = $cvcb->($options);
+  my ($cv, $cb) = cvcb($options);
   my $body = encode_json({ source => $source, target => $target });
   http_request(
     POST    => $self->{url}.'_replicate', 
@@ -155,6 +157,9 @@ request, it's up to you to call C<recv> on it.
 
 Also note that C<recv> will throw an exception if the request fails, so be
 prepared to catch exceptions where appropriate.
+
+This may seem like a hassle, but this is what makes it possible to work
+asynchronously.
 
 =head2 The \%options Parameter
 
@@ -236,8 +241,8 @@ and it is exported by default.
 
 This function will construct an L<AnyEvent::CouchDB::Database> object for you.
 If you only give it a name, it'll assume that the CouchDB server is at
-L<http://localhost:5984/>.  You may also give it a full URL to the CouchDB
-database.
+L<http://localhost:5984/>.  You may also give it a full URL to a CouchDB
+database to connect to.
 
 This function is also exported by default.
 
