@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Coro;
+use Coro::AnyEvent;
+use AnyEvent::CouchDB;
+use Data::Dump 'pp';
+my $couch = couch();
+my $bad   = couch('http://bad/');
+my $done  = AnyEvent->condvar;
+sub p(&) {
+  $done->begin;
+  my $code = shift;
+  my $data;
+  eval { $data = $code->(); };
+  if ($@) {
+    print $@, "\n";
+  } else {
+    print pp($data), "\n";
+  }
+  $done->end;
+}
+async { print "hello, world\n" };
+for (1 .. 4) {
+  async { p { ($couch->info->recv)    } };
+  async { p { ($couch->all_dbs->recv) } };
+  async { p { ($bad->info->recv)      } };
+  async { p { ($bad->all_dbs->recv)   } };
+}
+async { print "hello, again, world\n" };
+async { $done->recv; exit };
+
+schedule;

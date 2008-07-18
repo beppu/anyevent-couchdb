@@ -1,0 +1,92 @@
+2008-07-16 on #couchdb
+
+
+11:19 < beppu> I have a really simple question about reduce functions.  I see that they take keys and 
+values as parameters.  What kind of data should I expect in those 2 params?
+11:19 < tilgovi> jan____, randall <dizzot> leeds <atface> gmail
+11:20 < jchris> beppu: arrays
+11:20 < jan____> beppu: the values are the ones you emit in the map function, only without duplicates 
+and values are all values that have the same key in an array
+11:21 < beppu> when you call the emit function, the first param ends up being the key and the second one 
+is a value, right?
+11:21 < jeffd> jan____, how's that move/copy stuff coming? :)
+11:21 < beppu> (or wrong?)
+11:21 < jchris> beppu: correct
+11:21 < beppu> ok.
+11:21 < beppu> jchris: oh hey, you're the couchrest guy.
+11:22 < beppu> I like your client library.
+
+
+18:13 < beppu> In a reduce function that takes keys and values as params, is keys.length == 
+               values.length all the time?
+18:14 < beppu> If so, is there a 1:1 correspondence between what's in the keys array and what's in the 
+               values array?
+18:16 -!- arnaudsj [n=arnaudsj@24-178-88-81.dhcp.leds.al.charter.com] has joined #couchdb
+18:29 -!- ketralnis [n=ketralni@32.159.233.76] has quit [Read error: 110 (Connection timed out)]
+18:31 -!- mtodd__ [n=mtodd@c-71-56-3-115.hsd1.ga.comcast.net] has joined #couchdb
+18:38 -!- mtodd_ [n=mtodd@c-71-56-3-115.hsd1.ga.comcast.net] has quit [Connection timed out]
+18:41 -!- RobertFischer [n=RobertFi@c-71-63-174-117.hsd1.mn.comcast.net] has joined #couchdb
+18:47 -!- RobertFischer [n=RobertFi@c-71-63-174-117.hsd1.mn.comcast.net] has quit ["Taking off -- check 
+          out http://smokejumperit.com and http://enfranchisedmind.com/blog/"]
+18:52 -!- me-so-stupid [n=hooyambo@77.236.84.166] has joined #couchdb
+19:09 -!- bobesponja [n=bobespon@190.42.34.5] has joined #couchdb
+19:12 < jchris> beppu, the best way to learn all this stuff is via the log() function
+19:12 < jchris> i think the answer is yes, at least when the third paramater is false
+19:13 < beppu> there's a 3rd param?
+19:13 < jchris> it's true on combine aka rereduce
+19:14 < beppu> whoa... does this mean there are effectively 3 stages:  map, reduce, and combine (but 
+               reduce and combine get lumped into the same function and it's up to you to look at the 
+               3rd param and act accordingly)?
+19:15 < jchris> sorta
+19:15 < beppu> let me ask another way:  what does it mean to "combine"
+19:15 < beppu> the wiki is sorely lacking these important little details.
+19:16 < jchris> it's complex to describe
+19:17 < jchris> but the idea is that on reduce (when group=false) Couch wants to roll everything up into 
+                a single value
+19:17 < beppu> (sorry to put you on the spot)
+19:17 < beppu> ok.
+19:17 < jchris> so it runs the map
+19:17 < jchris> and then the reduce function at least once for every map row
+19:17 < jchris> and then again on its own output (in groups)
+19:17 < jchris> until the final answer is 42
+19:18 < beppu> hehe
+19:18 < jchris> or whatever
+19:18 < jchris> not like the reduce you might know from the map/reduce paper, hadoop, etc
+19:18 -!- funkatron [n=coj@c-98-223-49-5.hsd1.in.comcast.net] has joined #couchdb
+19:18 < beppu> ok.
+19:18 < jchris> which would be like sorting the results of reduce group=true on their values...
+19:19 < jchris> (and would be mighty handy if you ask me) :)
+19:19 < beppu> I'm trying to imagine the possibilities...  like what can I do w/ this....
+19:20 < jchris> my markov chain blog post is the only really imaginative thing I've done
+19:20 < beppu> Yeah, I just pulled that page up, actually.
+
+
+19:21 < jchris> damien did a std-deviation calculation using reduce
+19:22 < beppu> do you have a url for that?
+19:22 < jchris> the final value can be something complex like {total: 25255326, count: 2487, avg: 
+                441.32, stddev: 21.4}
+19:22 < jchris> just not a list, i guess
+19:22 < jchris> I'm fuzzy there
+19:22 < jchris> damien's thing was just in the channel
+19:22 < beppu> doh
+19:22 < jchris> I used to have a pastie.org for it, but the link is lost
+19:22 < beppu> right...
+19:22 < beppu> ephemeral data
+19:23 < damienkatz_> the stddev stuff is in the tests
+
+
+
+19:24 < damienkatz_> another use from reduce (this is from an email)
+19:24 < damienkatz_> :
+19:24 < damienkatz_> Anyway, I was thinking about a question that came up, which was how to do a 
+                     drill-down, guided categorized search, ala-Endeca.
+19:24 < damienkatz_> I think this sort of thing with CouchDB is now possible using our key arrays and 
+                     the group_level query option for reduce. Essentially, you'd permute the relevant 
+                     fields in keys into arrays and emit them into the view. Then, given any number of 
+                     arbitrary key constraints, we can instantly retrieve the number of documents 
+                     meeting those constraints, and the counts of the relevant sub constraints.
+19:24 < damienkatz_> The cost of this is for N of keys you want to permute is N!. So if a document has 5 
+                     fields relevant to a guided search, it would require 120 key arrays (each a 5 
+                     element array of keys) to be emitted. This would significant slow down the view 
+                     indexing speed, however, once built cost of the querying of the view during the 
+                     drill downs is small and can be done in a view single query.
