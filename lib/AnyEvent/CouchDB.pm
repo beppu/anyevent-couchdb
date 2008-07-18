@@ -341,6 +341,11 @@ L<CouchDB::View>
 
 None exist, yet.
 
+=head2 The Reason for Existence
+
+AnyEvent::CouchDB exists, because I needed a non-blocking CouchDB client that
+I could use within L<Continuity> and L<Squatting>.
+
 =head1 AUTHOR
 
 John BEPPU E<lt>beppu@cpan.orgE<gt>
