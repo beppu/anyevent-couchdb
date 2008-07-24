@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use AnyEvent::CouchDB;
+use Data::Dump 'pp';
+
+my $db = couchdb('bavl');
+
+for (1..8) {
+  # By giving the condvar our own callback, we can use AnyEvent::CouchDB in 
+  # a truly asynchronous way.  The client will not block when called like this.
+  $db->all_docs->cb(sub {
+    my $data = $_[0]->recv;
+    print pp($data), "\n";
+  });
+}
+
+my $w  = AnyEvent->timer(after => 2, cb => sub { exit });
+my $cv = AnyEvent->condvar;
+$cv->recv;
