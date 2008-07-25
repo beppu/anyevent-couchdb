@@ -137,7 +137,18 @@ Work with individual CouchDB documents;
 
 Query a view:
 
-  $db->view('users/all', { startkey => 'b', endkey => 'bzzzz' })->recv
+  $db->view('users/all', { startkey => 'b', endkey => 'bZZZ' })->recv
+
+Finally, an asynchronous example:
+
+  # Calling cb will not block whereas calling recv *will* block.
+  $db->all_docs->cb(sub { 
+    my ($cv) = @_;
+    print pp( $cv->recv ), "\n"; 
+  });
+
+  # However, you have to be in an event loop at some point in time.
+  AnyEvent->condvar->recv;
 
 =head1 DESCRIPTION
 
@@ -153,13 +164,37 @@ it makes sense in an asynchronous Perl environment.
 
 The main thing you have to remember is that all the data retrieval methods
 return an AnyEvent condvar, C<$cv>.  If you want the actual data from the
-request, it's up to you to call C<recv> on it.
+request, there are a few things you can do.
+
+You may have noticed that many of the examples in the SYNOPSIS call C<recv>
+on the condvar.  You're allowed to do this under 2 circumstances:
+
+=over 4
+      
+=item Either you're in a main program,
+
+Main programs are "allowed to call C<recv> blockingly", according to the
+author of L<AnyEvent>.
+
+=item or you're in a Coro + AnyEvent environment.
+
+When you call C<recv> inside a coroutine, only that coroutine is blocked
+while other coroutines remain active.  Thus, the program as a whole is
+still responsive.
+
+=back
+
+If you're not using Coro, and you don't want your whole program to block,
+what you should do is call C<cb> on the condvar, and give it a coderef to
+execute when the results come back.  The coderef will be given a condvar
+as a parameter, and it can call C<recv> on it to get the data.  The final
+example in the SYNOPSIS gives a brief example of this.
 
 Also note that C<recv> will throw an exception if the request fails, so be
 prepared to catch exceptions where appropriate.
 
-This may seem like a hassle, but this is what makes it possible to work
-asynchronously.
+Please read the L<AnyEvent> documentation for more information on the proper
+use of condvars.
 
 =head2 The \%options Parameter
 
@@ -235,9 +270,13 @@ This is a short-cut for:
 
   AnyEvent::CouchDB->new($url)
 
-and it is exported by default.
+and it is exported by default.  It will return a connection to a CouchDB server,
+and if you don't pass it a URL, it'll assume L<http://localhost:5984/>.  Thus,
+you can type:
 
-=head3 $db = couchdb([ $name_or_url ]);
+  $couch = couch;
+
+=head3 $db = couchdb($name_or_url);
 
 This function will construct an L<AnyEvent::CouchDB::Database> object for you.
 If you only give it a name, it'll assume that the CouchDB server is at
@@ -290,13 +329,13 @@ the replication to work.
 B<Examples>:
 
   # local to local
-  $couch->replicate('local_a', 'local_a_backup')->recv;
+  $couch->replicate('local_db', 'local_db_backup')->recv;
 
   # local to remote
-  $couch->replicate('local_a', 'http://elsewhere/remote_a')->recv
+  $couch->replicate('local_db', 'http://elsewhere/remote_db')->recv
 
   # remote to local
-  $couch->replicate('http://elsewhere/remote_a', 'local_a')->recv
+  $couch->replicate('http://elsewhere/remote_db', 'local_db')->recv
 
 As usual, this method returns a condvar that you're expected to call C<recv> on.
 Doing this will return a hashref that looks something like this upon success:
@@ -320,6 +359,10 @@ Doing this will return a hashref that looks something like this upon success:
   }
 
 =head1 SEE ALSO
+
+=head2 The Original JavaScript Version
+
+L<http://svn.apache.org/repos/asf/incubator/couchdb/trunk/share/www/script/jquery.couch.js>
 
 =head2 Related Modules
 
