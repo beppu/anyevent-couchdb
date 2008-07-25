@@ -162,6 +162,7 @@ sub bulk_docs {
     POST    => $self->uri.'_bulk_docs',
     headers => { 'Content-Type' => 'application/json' },
     body    => $json->($docs),
+    $cb
   );
   $cv;
 }
