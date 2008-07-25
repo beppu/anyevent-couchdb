@@ -266,9 +266,9 @@ be compacted, and it returns a condvar.
 
 =head3 $cv = $db->all_docs([ \%options ])
 
-This method is used to request a hashref that contains an index of all the 
+This method is used to request a hashref that contains an index of all the
 documents in the database.  Note that you B<DO NOT> get the actual documents.
-Instead, you do get its C<id> and its C<rev>, so that you can fetch it later.
+Instead, you get their C<id>s, so that you can fetch them later.
 
 =head3 $cv = $db->open_doc($id, [ \%options ])
 
