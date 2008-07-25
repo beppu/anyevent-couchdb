@@ -246,7 +246,7 @@ This method returns the base URI of the database.
 =head3 $cv = $db->create
 
 This method is used to create a CouchDB database.  It returns an L<AnyEvent>
-condvar which you are expected to call C<recv> on.
+condvar.
 
 =head3 $cv = $db->drop
 
@@ -307,7 +307,7 @@ reduce function.  The 3rd parameter lets you explicitly tell this method what
 language the map and reduce functions are written in.  The final parameter,
 C<\%options>, can be used to manipulate the result-set in standard ways.
 
-This method returns a condvar that you're expected to call C<recv> on.
+This method returns a condvar.
 
 =head3 $cv = $db->view($name, [ \%options ])
 
@@ -315,7 +315,7 @@ This method lets you query views that have been predefined in CouchDB design
 documents.  You give it a name which is of the form "$design_doc/$view", and
 you may pass in C<\%options> as well to manipulate the result-set.
 
-This method returns a condvar that you're expected to call C<recv> on.
+This method returns a condvar.
 
 =head1 AUTHOR
 
