@@ -158,7 +158,34 @@ sub remove_doc {
 
 sub attach {
   my ($self, $doc, $attachment, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  if ($options->{success}) {
+    my $orig = $options->{success};
+    $options->{success} = sub {
+      my ($resp) = @_;
+      $orig->($resp);
+      $doc->{_id}  = $resp->{id};
+      $doc->{_rev} = $resp->{rev};
+      $doc->{_attachments} ||= {};
+      $doc->{_attachments}->{$attachment} = {
+        'content_type' => $options->{content_type},
+        'length'       => 0,
+        'stub'         => JSON::XS::true,
+      };
+    };
+  } else {
+    $options->{success} = sub {
+      my ($resp) = @_;
+      $doc->{_id}  = $resp->{id};
+      $doc->{_rev} = $resp->{rev};
+      $doc->{_attachments} ||= {};
+      $doc->{_attachments}->{$attachment} = {
+        'content_type' => $options->{content_type},
+        'length'       => 0,
+        'stub'         => JSON::XS::true,
+      };
+    };
+  }
+  my ($cv, $cb) = cvcb($options, 201);
   my $body < io($options->{src});
   my $content_type = $options->{content_type};
   http_request(
@@ -173,6 +200,23 @@ sub attach {
 
 sub detach {
   my ($self, $doc, $attachment, $options) = @_;
+  if ($options->{success}) {
+    my $orig = $options->{success};
+    $options->{success} = sub {
+      my ($resp) = @_;
+      $orig->($resp);
+      $doc->{_id}  = $resp->{id};
+      $doc->{_rev} = $resp->{rev};
+      delete $doc->{_attachments}->{$attachment};
+    };
+  } else {
+    $options->{success} = sub {
+      my ($resp) = @_;
+      $doc->{_id}  = $resp->{id};
+      $doc->{_rev} = $resp->{rev};
+      delete $doc->{_attachments}->{$attachment};
+    };
+  }
   my ($cv, $cb) = cvcb($options);
   http_request(
     DELETE  => $self->uri.uri_escape_utf8($doc->{_id}).
