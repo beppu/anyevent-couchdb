@@ -155,6 +155,30 @@ sub remove_doc {
   $cv;
 }
 
+sub attach {
+  my ($self, $doc, $attachment, $options) = @_;
+  my ($cv, $cb) = cvcb($options);
+  # name
+  # src
+  # content_type
+  http_request(
+    PUT => 'something',
+    $cb
+  )
+  $cv;
+}
+
+sub detach {
+  my ($self, $doc, $attachment, $options) = @_;
+  my ($cv, $cb) = cvcb($options);
+  http_request(
+    DELETE  => $self->uri.uri_escape_utf8($doc->{_id}).
+      "/".uri_escape_utf8($attachment).$query->({ rev => $doc->{_rev} }),
+    $cb
+  );
+  $cv;
+}
+
 sub bulk_docs {
   my ($self, $docs, $options) = @_;
   my ($cv, $cb) = cvcb($options);

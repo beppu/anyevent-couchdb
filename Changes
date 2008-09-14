@@ -1,6 +1,6 @@
 1.10 UNRELEASED
   * add support for attachments
-  * mention DB::CouchDB in POD
+  - mention DB::CouchDB in POD
 
 1.00 2008-07-25
   - initial release
