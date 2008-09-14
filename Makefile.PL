@@ -13,6 +13,7 @@ WriteMakefile (
     'JSON::XS'             => 0,
     'Data::Dump::Streamer' => 0,
     'Data::Dump'           => 0,
+    'IO::All'              => 0,
   },
   depend => { distmeta => 'metamunge' }
 );
