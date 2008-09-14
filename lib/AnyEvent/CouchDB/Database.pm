@@ -158,6 +158,8 @@ sub remove_doc {
 
 sub attach {
   my ($self, $doc, $attachment, $options) = @_;
+  my $body < io($options->{src});
+  $options->{content_type} ||= 'text/plain';
   if ($options->{success}) {
     my $orig = $options->{success};
     $options->{success} = sub {
@@ -186,12 +188,10 @@ sub attach {
     };
   }
   my ($cv, $cb) = cvcb($options, 201);
-  my $body < io($options->{src});
-  my $content_type = $options->{content_type};
   http_request(
     PUT => $self->uri.uri_escape_utf8($doc->{_id}).
       "/".uri_escape_utf8($attachment).$query->({ rev => $doc->{_rev} }),
-    headers => { 'Content-Type' => $content_type },
+    headers => { 'Content-Type' => $options->{content_type} },
     body    => $body,
     $cb
   );
