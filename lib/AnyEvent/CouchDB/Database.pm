@@ -158,13 +158,14 @@ sub remove_doc {
 sub attach {
   my ($self, $doc, $attachment, $options) = @_;
   my ($cv, $cb) = cvcb($options);
-  # name
   # src
   # content_type
+  my $content_type = $options->{content_type};
   http_request(
-    PUT => 'something',
+    PUT => $self->uri.uri_escape_utf8($doc->{_id}).
+      "/".uri_escape_utf8($attachment).$query->({ rev => $doc->{_rev} }),
     $cb
-  )
+  );
   $cv;
 }
 
