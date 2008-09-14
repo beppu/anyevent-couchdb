@@ -6,6 +6,7 @@ use JSON::XS;
 use AnyEvent::HTTP;
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
+use IO::All;
 
 {
   # manual import ;-)
@@ -158,12 +159,13 @@ sub remove_doc {
 sub attach {
   my ($self, $doc, $attachment, $options) = @_;
   my ($cv, $cb) = cvcb($options);
-  # src
-  # content_type
+  my $body < io($options->{src});
   my $content_type = $options->{content_type};
   http_request(
     PUT => $self->uri.uri_escape_utf8($doc->{_id}).
       "/".uri_escape_utf8($attachment).$query->({ rev => $doc->{_rev} }),
+    headers => { 'Content-Type' => $content_type },
+    body    => $body,
     $cb
   );
   $cv;
