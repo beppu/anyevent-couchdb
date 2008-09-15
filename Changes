@@ -1,6 +1,10 @@
 1.10 UNRELEASED
   * see if we can load new attachment data asynchronously.
 
+1.02 UNRELEASED
+  - added documentation for attach and detatch
+  - added document length to new attachment stubs
+
 1.01 2008-09-14
   - add support for attachments
   - mention DB::CouchDB in POD

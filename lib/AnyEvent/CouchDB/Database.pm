@@ -159,7 +159,7 @@ sub remove_doc {
 sub attach {
   my ($self, $doc, $attachment, $options) = @_;
   my $body < io($options->{src});
-  $options->{content_type} ||= 'text/plain';
+  $options->{type} ||= 'text/plain';
   if ($options->{success}) {
     my $orig = $options->{success};
     $options->{success} = sub {
@@ -169,8 +169,8 @@ sub attach {
       $doc->{_rev} = $resp->{rev};
       $doc->{_attachments} ||= {};
       $doc->{_attachments}->{$attachment} = {
-        'content_type' => $options->{content_type},
-        'length'       => 0,
+        'type' => $options->{type},
+        'length'       => length($body),
         'stub'         => JSON::XS::true,
       };
     };
@@ -181,8 +181,8 @@ sub attach {
       $doc->{_rev} = $resp->{rev};
       $doc->{_attachments} ||= {};
       $doc->{_attachments}->{$attachment} = {
-        'content_type' => $options->{content_type},
-        'length'       => 0,
+        'type' => $options->{type},
+        'length'       => length($body),
         'stub'         => JSON::XS::true,
       };
     };
@@ -191,7 +191,7 @@ sub attach {
   http_request(
     PUT => $self->uri.uri_escape_utf8($doc->{_id}).
       "/".uri_escape_utf8($attachment).$query->({ rev => $doc->{_rev} }),
-    headers => { 'Content-Type' => $options->{content_type} },
+    headers => { 'Content-Type' => $options->{type} },
     body    => $body,
     $cb
   );
@@ -358,6 +358,25 @@ updated.  This allows you to save C<$doc> repeatedly using the same hashref.
 
 This method is used to remove a document from the database, and it returns a
 condvar.
+
+=head3 $cv = $db->attach($doc, $attachment, \%options)
+
+This method adds an attachment to a document, and it returns a condvar.  Note
+that the C<%options> are NOT optional for this method.  You must provide a
+C<src> for the data which should be a path that can be understood by
+L<IO::All>.  You must also provide a MIME content C<type> for this data.  If
+none is provided, it'll default to C<text/plain>.
+
+Example:
+
+  $db->attach($doc, "passwd.txt", {
+    src  => '/etc/passwd',
+    type => 'text/plain'
+  })->recv;
+
+=head3 $cv = $db->detach($doc, $attachment, [ \%options ])
+
+This method removes an attachment from a document, and it returns a condvar.
 
 =head3 $cv = $db->bulk_docs(\@docs, [ \%options ])
 
