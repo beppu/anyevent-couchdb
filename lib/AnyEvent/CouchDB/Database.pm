@@ -169,7 +169,7 @@ sub attach {
       $doc->{_rev} = $resp->{rev};
       $doc->{_attachments} ||= {};
       $doc->{_attachments}->{$attachment} = {
-        'type' => $options->{type},
+        'content_type' => $options->{type},
         'length'       => length($body),
         'stub'         => JSON::XS::true,
       };
@@ -181,7 +181,7 @@ sub attach {
       $doc->{_rev} = $resp->{rev};
       $doc->{_attachments} ||= {};
       $doc->{_attachments}->{$attachment} = {
-        'type' => $options->{type},
+        'content_type' => $options->{type},
         'length'       => length($body),
         'stub'         => JSON::XS::true,
       };
@@ -367,16 +367,20 @@ C<src> for the data which should be a path that can be understood by
 L<IO::All>.  You must also provide a MIME content C<type> for this data.  If
 none is provided, it'll default to C<text/plain>.
 
-Example:
+B<Example>:
 
-  $db->attach($doc, "passwd.txt", {
-    src  => '/etc/passwd',
+  $db->attach($doc, "issue.net", {
+    src  => '/etc/issue.net',
     type => 'text/plain'
   })->recv;
 
 =head3 $cv = $db->detach($doc, $attachment, [ \%options ])
 
 This method removes an attachment from a document, and it returns a condvar.
+
+B<Example>:
+
+  $db->detach($doc, "issue.net")->recv;
 
 =head3 $cv = $db->bulk_docs(\@docs, [ \%options ])
 
