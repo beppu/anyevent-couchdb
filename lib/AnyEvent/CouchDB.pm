@@ -154,7 +154,8 @@ Finally, an asynchronous example:
 
 AnyEvent::CouchDB is a non-blocking CouchDB client implemented on top of the
 L<AnyEvent> framework.  Using this library will give you the ability to run
-many CouchDB requests asynchronously.  However, it can also be used synchronously
+many CouchDB requests asynchronously, and it was intended to be used within
+a L<Coro>+L<AnyEvent> environment.  However, it can also be used synchronously
 if you want.
 
 Its API is based on jquery.couch.js, but we've adapted the API slightly so that
