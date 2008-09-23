@@ -2,7 +2,7 @@ package AnyEvent::CouchDB;
 
 use strict;
 use warnings;
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 use JSON::XS;
 use AnyEvent::HTTP;
@@ -88,6 +88,13 @@ sub info {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
   http_get $self->{url}, $cb;
+  $cv;
+}
+
+sub config {
+  my ($self, $options) = @_;
+  my ($cv, $cb) = cvcb($options);
+  http_get $self->{url} . '_config', $cb;
   $cv;
 }
 
@@ -318,6 +325,11 @@ looks like this:
     couchdb => 'Welcome',
     version => '0.7.3a658574'
   }
+
+=head3 $cv = $couch->config()
+
+This method requests a hashref of info regarding the configuration of the
+current CouchDB server.  It returns a condvar that you should call C<recv> on.
 
 =head3 $cv = $couch->replicate($source, $target, [ \%options ])
 
