@@ -8,11 +8,8 @@ use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
 use IO::All;
 
-{
-  # manual import ;-)
-  no strict 'refs';
-  *cvcb = \&AnyEvent::CouchDB::cvcb;
-}
+# manual import ;-)
+*cvcb = \&AnyEvent::CouchDB::cvcb;
 
 our $query = sub { 
   my $options = shift;
@@ -22,7 +19,7 @@ our $query = sub {
       next if ($name eq 'error' || $name eq 'success');
       my $value = $options->{$name};
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
-        $value = ref($value) ? encode_json($value) : qq{"$value"};
+        $value = ref($value) ? encode_json($value) : (defined $value) ? qq{"$value"} : 'null';
       }
       push @buf, "$name=".uri_escape_utf8($value);
     }

@@ -1,6 +1,10 @@
 1.10 UNRELEASED
   * see if we can load new attachment data asynchronously.
 
+1.03 UNRELEASED
+  - added method for getting a server's config
+  - applied patch to $query from Jan-Felix Wittmann
+
 1.02 2008-09-15
   - added documentation for attach and detatch
   - added document length to new attachment stubs
