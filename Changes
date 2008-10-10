@@ -1,7 +1,7 @@
 1.10 UNRELEASED
   * see if we can load new attachment data asynchronously.
 
-1.03 UNRELEASED
+1.03 2008-10-10
   - added method for getting a server's config
   - applied patch to $query from Jan-Felix Wittmann
 
