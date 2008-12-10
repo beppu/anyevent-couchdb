@@ -6,6 +6,7 @@
     how the $query function deals with the 'group' parameter.
     It now translates between Perl's notion of truth to Javascript's
     formal true/false values implicitly.
+  - added eg/pager example (by Jan-Felix Wittman)
 
 1.03 2008-10-10
   - added method for getting a server's config
