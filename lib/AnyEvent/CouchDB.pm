@@ -407,6 +407,10 @@ I could use within L<Continuity> and L<Squatting>.
 
 John BEPPU E<lt>beppu@cpan.orgE<gt>
 
+=head1 SPECIAL THANKS
+
+Jan-Felix Wittman (for bug fixes and interesting couchdb discussion)
+
 =head1 COPYRIGHT
 
 Copyright (c) 2008 John BEPPU E<lt>beppu@cpan.orgE<gt>.

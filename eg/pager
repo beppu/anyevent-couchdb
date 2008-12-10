@@ -1,0 +1,156 @@
+# This is some code I received from Jan-Felix Wittman during an email exchange.
+# I believe it is an expression of the same paging algorithm used 
+# by CouchRest (for Ruby).
+
+package CouchDB::Pager;
+use Iterator::Simple qw(:all);
+use Carp ();
+
+sub new {
+        my ($class, $db) = @_;
+        eval { $db->info->recv; };
+        Carp::croak "no couchdb" if ($@);
+        
+        my $self = {
+                'db' => $db
+        };      
+        bless($self, $class);
+        return $self;
+}
+
+sub all_docs {
+        my ($self, $count) = @_;
+        $count ||= 10;
+        my $startkey = undef;
+        my $oldend = undef;
+        my $db = $self->{db};
+        
+   iterator {
+                my $docs = $db->all_docs({      count => $count+1,      startkey =>  
+$startkey})->recv;
+                my $end_idx = $#{$docs->{rows}};
+                my $last_row = $docs->{rows}->[$end_idx];
+                $startkey = $last_row->{key};                           
+                delete $docs->{rows}->[$end_idx] if $end_idx == $count;         
+          last if ($oldend eq $startkey);
+                $oldend = $startkey;
+                return $docs;
+        }
+}
+
+sub all_view {
+        my ($self, $view, $count, $firstkey, $lastkey, $firstdocid) = @_;
+        $count ||= 10;
+        $firstkey ||= undef; $lastkey ||= undef;  $firstdocid ||=undef;
+        $is_key_reduced ||= 0;
+        my $startkey = $firstkey;
+        my $startkey_docid = $firstdocid;
+        my $endkey = undef;
+        my $next = 1;   
+        my $db = $self->{db};
+        
+        iterator {
+                last unless($next);
+                my $options = sub {
+                        return {
+                                %{($startkey_docid)
+                                        ? {     count => $count, skip => 1, startkey => $startkey,  
+startkey_docid => $startkey_docid}
+                                        : {     count => $count, startkey => $startkey }},
+                                %{($lastkey) ? { endkey => $lastkey } : {} }
+                        }
+                }->();
+                my $docs = $db->view($view, $options)->recv;
+                my $total_rows = $docs->{total_rows};
+                my $offset = $docs->{offset};
+                my $viewrows = $docs->{rows};           
+                my $first_row = $viewrows->[0];
+                $startkey = $first_row->{key};
+                my $last_row = $viewrows->[$#{$viewrows}];              
+                $endkey = $last_row->{key};
+                $startkey_docid = $last_row->{id};
+                $startkey = $endkey;    
+                if (    defined $endkey && $endkey eq $lastkey
+                        ||       ($offset+$count)>=$total_rows
+                        || !$startkey_docid )  {
+                        $next=0;
+                        $startkey_docid = undef;
+                        $startkey = undef;
+                }
+                return {
+                        rows => $viewrows,
+                        next_startkey => $startkey,
+                        next_startkey_docid => $startkey_docid,
+                        rows_per_loop => $count,
+                        total_rows => $total_rows
+                };
+        }
+}
+
+sub key_reduced_view {
+        my $self = shift;
+        my $iterator = $self->all_view(@_);     
+        iterator {
+                my $key_reduced_rows = {};
+                last unless(defined(my $result = $iterator->next));
+                my $rows = $result->{rows};
+                foreach my $row (@{$rows}) {                    
+                        my $key = $row->{key};
+                        $key_reduced_rows->{$key} ||= [];
+                        push(@{$key_reduced_rows->{$key}}, $row->{value});
+                }
+                $result->{rows} = $key_reduced_rows;
+                return $result;         
+        }
+}
+
+        
+use AnyEvent::CouchDB;
+use Data::Dump 'pp';
+
+# View
+#by_tag => {
+#               map =>
+#               "function(doc) {
+#                       if (doc.tags) {
+#                               doc.tags.forEach(function(tag){
+#                                       emit(tag.name, doc);
+#                               });
+#                       }
+#               }"
+#       }
+
+my $couch = couch('http://localhost:8081/');
+my $db = $couch->db('iq');
+
+my $pager = CouchDB::Pager->new($db);
+
+# All documents group by tag
+#$iterator = $pager->key_reduced_view('links/by_tag',10);
+#while(defined(my $result = $iterator->next)) {
+#       print pp($result);
+#       print "\n##########################\n"; 
+#}
+
+# Documents with tags 'A..' - 'AZZZZZ'
+#$iterator = $pager->all_view('links/by_tag',10, 'A', 'AZZZZZ');
+#while(defined(my $result = $iterator->next)) {
+#       print pp($result);
+#       print "\n##########################\n"; 
+#}
+
+# Documents with tag 'Amazon'
+#$iterator = $pager->all_view('links/by_tag',10, 'Amazon', 'Amazon');
+#while(defined(my $result = $iterator->next)) {
+#       print pp($result);
+#       print "\n##########################\n"; 
+#}
+
+# All documents with tag '..' - 'bildbearbeitung'
+$iterator = $pager->all_view('links/by_tag',10, undef,  
+'bildbearbeitung');
+while(defined(my $result = $iterator->next)) {
+        print pp($result);
+        print "\n##########################\n"; 
+}
+
