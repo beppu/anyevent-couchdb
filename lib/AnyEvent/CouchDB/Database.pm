@@ -21,6 +21,9 @@ our $query = sub {
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
         $value = ref($value) ? encode_json($value) : (defined $value) ? qq{"$value"} : 'null';
       }
+      if ($name eq 'group') {
+        $value = $value ? 'true' : 'false';
+      }
       push @buf, "$name=".uri_escape_utf8($value);
     }
   }
