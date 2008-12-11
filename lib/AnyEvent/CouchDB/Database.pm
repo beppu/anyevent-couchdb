@@ -22,7 +22,9 @@ our $query = sub {
         $value = ref($value) ? encode_json($value) : (defined $value) ? qq{"$value"} : 'null';
       }
       if ($name eq 'group') {
-        $value = $value ? 'true' : 'false';
+        $value = $value
+          ? ( ($value eq 'false') ? 'false' : 'true' )
+          : 'false';
       }
       push @buf, "$name=".uri_escape_utf8($value);
     }

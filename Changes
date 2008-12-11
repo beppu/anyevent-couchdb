@@ -2,6 +2,13 @@
   * see if we can load new attachment data asynchronously.
   * write tests
 
+1.05 2008-12-10
+  - Regarding RT#41596, I don't want to penalize people who
+    were following the docs, so when you say
+    $query->({ group => 'false' }) you'll get
+    "?group=false" just like before.
+    DWIM can be a double-edged sword.  :-(
+
 1.04 2008-12-10
   - RT#41596:  accepted suggestion from bug report to change
     how the $query function deals with the 'group' parameter.
