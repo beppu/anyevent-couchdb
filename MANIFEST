@@ -3,6 +3,7 @@ edit
 eg/async
 eg/async-via-cb
 eg/NOTES
+eg/pager
 lib/AnyEvent/CouchDB.pm
 lib/AnyEvent/CouchDB/Database.pm
 Makefile.PL
