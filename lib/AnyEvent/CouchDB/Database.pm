@@ -56,7 +56,7 @@ sub name {
 }
 
 sub uri {
-  $_[0]->{uri};
+  $_[0]->{uri}->as_string;
 }
 
 sub compact {
