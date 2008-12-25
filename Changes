@@ -2,6 +2,12 @@
   * see if we can load new attachment data asynchronously.
   * write tests
 
+1.06 2008-12-25
+  - not only 200 is OK, bulk docs returns 201 on success 
+    (by Yuval Kogman)
+  - use URI->path to set the DB name (no problems with missing leading slash)
+    (by Yuval Kogman)
+
 1.05 2008-12-10
   - Regarding RT#41596, I don't want to penalize people who
     were following the docs, so when you say
