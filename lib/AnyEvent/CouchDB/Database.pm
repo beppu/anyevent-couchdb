@@ -112,6 +112,20 @@ sub open_doc {
   $cv;
 }
 
+sub open_docs {
+  my ($self, $doc_ids, $options) = @_;
+  my ($cv, $cb) = cvcb($options);
+  $options ||= {};
+  $options->{'include_docs'} = 'true';
+  http_request(
+    POST => $self->uri.'_all_docs'.$query->($options),
+    headers => { 'Content-Type' => 'application/json' },
+    body    => $json->({"keys" => $doc_ids}),
+    $cb
+  );
+  $cv;
+}
+
 sub save_doc {
   my ($self, $doc, $options) = @_;
   if ($options->{success}) {
@@ -342,10 +356,16 @@ be compacted, and it returns a condvar.
 This method is used to request a hashref that contains an index of all the
 documents in the database.  Note that you B<DO NOT> get the actual documents.
 Instead, you get their C<id>s, so that you can fetch them later.
+To get the documents in the result, set parameter C<include_docs> to 1 in the options
 
 =head3 $cv = $db->open_doc($id, [ \%options ])
 
 This method is used to request a single CouchDB document by its C<id>, and
+it returns a condvar.
+
+=head3 $cv = $db->open_docs($ids, [ \%options ])
+
+This method is used to request multiple CouchDB documents by their C<ids>, and
 it returns a condvar.
 
 =head3 $cv = $db->save_doc($doc, [ \%options ])
