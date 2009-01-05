@@ -2,6 +2,13 @@
   * see if we can load new attachment data asynchronously.
   * write tests
 
+1.08
+  - used META_MERGE instead of my Makefile.PL hack to
+    exclude the eg/ directory from being indexed by CPAN
+    (by Yuval Kogman)
+  - added support for /db/_all_docs URL via the new open_docs() method.
+    (by Jan-Felix Wittmann)
+
 1.07 2008-12-25
   - 1.06 was a failed upload.  Let's try this again.
 
@@ -23,7 +30,7 @@
     how the $query function deals with the 'group' parameter.
     It now translates between Perl's notion of truth to Javascript's
     formal true/false values implicitly.
-  - added eg/pager example (by Jan-Felix Wittman)
+  - added eg/pager example (by Jan-Felix Wittmann)
 
 1.03 2008-10-10
   - added method for getting a server's config

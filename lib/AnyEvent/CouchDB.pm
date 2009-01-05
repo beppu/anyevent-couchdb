@@ -377,7 +377,7 @@ Doing this will return a hashref that looks something like this upon success:
 
 =head2 The Original JavaScript Version
 
-L<http://svn.apache.org/repos/asf/incubator/couchdb/trunk/share/www/script/jquery.couch.js>
+L<http://svn.apache.org/repos/asf/couchdb/trunk/share/www/script/jquery.couch.js>
 
 =head2 Related Modules
 
@@ -394,11 +394,8 @@ L<DB::CouchDB>
 
 =head3 View Servers
 
-L<CouchDB::View>
-
-=head3 Search Servers
-
-None exist, yet.
+L<CouchDB::View> - This lets you write your map/reduce functions in Perl
+instead of JavaScript.
 
 =head2 The Reason for Existence
 
@@ -411,7 +408,9 @@ John BEPPU E<lt>beppu@cpan.orgE<gt>
 
 =head1 SPECIAL THANKS
 
-Jan-Felix Wittman (for bug fixes and interesting couchdb discussion)
+Jan-Felix Wittman (for bug fixes, feature enhancements, and interesting couchdb discussion)
+
+Yuval Kogman (for bug fixes)
 
 =head1 COPYRIGHT
 
