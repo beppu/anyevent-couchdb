@@ -8,8 +8,8 @@ WriteMakefile (
   ABSTRACT_FROM => 'lib/AnyEvent/CouchDB.pm',
   EXE_FILES     => [ ],
   META_MERGE    => {
-	  no_index => { directory => [ qw(eg) ] },
-	},
+    no_index    => { directory => [ qw(eg) ] },
+  },
   PREREQ_PM     => {
     'AnyEvent::HTTP'       => 1.03,
     'CouchDB::View'        => 0,
