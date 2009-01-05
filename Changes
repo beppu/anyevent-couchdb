@@ -2,7 +2,7 @@
   * see if we can load new attachment data asynchronously.
   * write tests
 
-1.08
+1.08 2009-01-05
   - used META_MERGE instead of my Makefile.PL hack to
     exclude the eg/ directory from being indexed by CPAN
     (by Yuval Kogman)
