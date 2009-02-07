@@ -439,7 +439,7 @@ John BEPPU E<lt>beppu@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2008 John BEPPU E<lt>beppu@cpan.orgE<gt>.
+Copyright (c) 2008-2009 John BEPPU E<lt>beppu@cpan.orgE<gt>.
 
 =head2 The "MIT" License
 
