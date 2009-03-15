@@ -21,7 +21,7 @@ our $query = sub {
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
         $value = ref($value) ? encode_json($value) : (defined $value) ? qq{"$value"} : 'null';
       }
-      if ($name eq 'group') {
+      if ($name eq 'group' || $name eq 'reduce' || $name eq 'descending' || $name eq 'include_docs') {
         $value = $value
           ? ( ($value eq 'false') ? 'false' : 'true' )
           : 'false';
@@ -102,6 +102,13 @@ sub all_docs {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
   http_get($self->uri.'_all_docs'.$query->($options), $cb);
+  $cv;
+}
+
+sub all_docs_by_seq {
+  my ($self, $options) = @_;
+  my ($cv, $cb) = cvcb($options);
+  http_get($self->uri.'_all_docs_by_seq'.$query->($options), $cb);
   $cv;
 }
 
@@ -351,13 +358,6 @@ be compacted, and it returns a condvar.
 
 =head2 Document Level Operations
 
-=head3 $cv = $db->all_docs([ \%options ])
-
-This method is used to request a hashref that contains an index of all the
-documents in the database.  Note that you B<DO NOT> get the actual documents.
-Instead, you get their C<id>s, so that you can fetch them later.
-To get the documents in the result, set parameter C<include_docs> to 1 in the options
-
 =head3 $cv = $db->open_doc($id, [ \%options ])
 
 This method is used to request a single CouchDB document by its C<id>, and
@@ -412,6 +412,31 @@ return a condvar.
 
 =head2 Database Queries
 
+=head3 $cv = $db->view($name, [ \%options ])
+
+This method lets you query views that have been predefined in CouchDB design
+documents.  You give it a name which is of the form "$design_doc/$view", and
+you may pass in C<\%options> as well to manipulate the result-set.
+
+This method returns a condvar.
+
+=head3 $cv = $db->all_docs([ \%options ])
+
+This method is used to request a hashref that contains an index of all the
+documents in the database.  Note that you B<DO NOT> get the actual documents.
+Instead, you get their C<id>s, so that you can fetch them later.
+To get the documents in the result, set parameter C<include_docs> to 1 in 
+the C<\%options>.
+
+=head3 $cv = $db->all_docs_by_seq([ \%options ])
+
+This method is similar to the C<all_docs> method, but instead of using document ids
+as a key, it uses update sequence of the document instead.  (The update_seq is an
+integer that is incremented every time the database is updated.  You can get the
+current update_seq of a database by calling C<info>.)
+
+This method returns a condvar.
+
 =head3 $cv = $db->query($map, [ $reduce ], [ $language ], [ \%options ])
 
 This method lets you send ad-hoc queries to CouchDB.  You have to at least give
@@ -422,14 +447,6 @@ view server (like L<CouchDB::View>) installed.  The same goes for the optional
 reduce function.  The 3rd parameter lets you explicitly tell this method what
 language the map and reduce functions are written in.  The final parameter,
 C<\%options>, can be used to manipulate the result-set in standard ways.
-
-This method returns a condvar.
-
-=head3 $cv = $db->view($name, [ \%options ])
-
-This method lets you query views that have been predefined in CouchDB design
-documents.  You give it a name which is of the form "$design_doc/$view", and
-you may pass in C<\%options> as well to manipulate the result-set.
 
 This method returns a condvar.
 
