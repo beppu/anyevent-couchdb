@@ -2,6 +2,12 @@
   * see if we can load new attachment data asynchronously.
   * write tests
 
+1.09 UNRELEASED
+  - added support for _all_docs_by_seq
+  - made boolean handling in view %options more consistent.
+  * need to improve startkey/endkey/key JSON encoding.
+    Perhaps I should allow for a custom $json object.
+
 1.08 2009-01-05
   - used META_MERGE instead of my Makefile.PL hack to
     exclude the eg/ directory from being indexed by CPAN
