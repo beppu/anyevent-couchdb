@@ -22,7 +22,7 @@ WriteMakefile (
     no_index    => { directory => [ qw(eg) ] },
   },
   PREREQ_PM     => {
-    'AnyEvent::HTTP'       => 1.03,
+    'AnyEvent::HTTP'       => 1.11,
     'CouchDB::View'        => 0,
     'JSON::XS'             => 0,
     'Data::Dump::Streamer' => 0,
