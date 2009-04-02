@@ -1,12 +1,14 @@
 1.10 UNRELEASED
   * see if we can load new attachment data asynchronously.
   * write tests
-
-1.09 UNRELEASED
-  - added support for _all_docs_by_seq
-  - made boolean handling in view %options more consistent.
   * need to improve startkey/endkey/key JSON encoding.
     Perhaps I should allow for a custom $json object.
+
+1.09 2009-04-02
+  - added support for _all_docs_by_seq
+  - made boolean handling in view %options more consistent.
+  - changed the view URL pattern to the new CouchDB 0.9+ style.
+    (by Jan-Felix Wittmann)
 
 1.08 2009-01-05
   - used META_MERGE instead of my Makefile.PL hack to
