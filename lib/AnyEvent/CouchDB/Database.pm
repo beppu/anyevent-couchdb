@@ -11,7 +11,7 @@ use IO::All;
 # manual import ;-)
 *cvcb = \&AnyEvent::CouchDB::cvcb;
 
-our $query = sub { 
+our $query = sub {
   my $options = shift;
   my @buf;
   if (defined($options) && keys %$options) {
@@ -30,7 +30,7 @@ our $query = sub {
     }
   }
   (@buf)
-    ? '?' . join('&', @buf) 
+    ? '?' . join('&', @buf)
     : '';
 };
 
@@ -265,7 +265,7 @@ sub query {
   my ($self, $map_fun, $reduce_fun, $language, $options) = @_;
   my ($cv, $cb) = cvcb($options);
   $language ||= (ref($map_fun) eq 'CODE') ? 'text/perl' : 'javascript';
-  my $body = {      
+  my $body = {
     language => $language,
     map      => $code_to_string->($map_fun),
   };
@@ -283,20 +283,20 @@ sub query {
 
 sub view {
   my ($self, $name, $options) = @_;
-	my ($cv, $cb) = cvcb($options);
-	my ($dname, $vname) = split('/', $name);
-	my $uri = $self->uri."/_design/".$dname."/_view/".$vname;
-	if ($options->{keys}) {
-		my $body = { keys => $options->{keys} };
-		http_request(
-			'POST' => $uri,
-			headers => { 'Content-Type' => 'application/json' },
-			body    => encode_json($body),
-			$cb
-		);
-	} else {
-		http_get($uri.$query->($options), $cb);
-	}
+  my ($cv, $cb) = cvcb($options);
+  my ($dname, $vname) = split('/', $name);
+  my $uri = $self->uri."/_design/".$dname."/_view/".$vname;
+  if ($options->{keys}) {
+    my $body = { keys => $options->{keys} };
+    http_request(
+      'POST' => $uri,
+      headers => { 'Content-Type' => 'application/json' },
+      body    => encode_json($body),
+      $cb
+    );
+  } else {
+    http_get($uri.$query->($options), $cb);
+  }
   $cv;
 }
 
