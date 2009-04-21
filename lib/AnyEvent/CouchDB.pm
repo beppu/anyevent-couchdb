@@ -2,7 +2,7 @@ package AnyEvent::CouchDB;
 
 use strict;
 use warnings;
-our $VERSION = '1.09';
+our $VERSION = '1.10';
 
 use JSON::XS;
 use AnyEvent::HTTP;
@@ -17,9 +17,13 @@ use base 'Exporter';
 
 our @EXPORT = qw(couch couchdb);
 
+# default JSON encoder
+our $default_json = JSON::XS->new;
+
 sub cvcb {
-  my ($options, $status) = @_;
+  my ($options, $status, $json) = @_;
   $status ||= 200;
+  $json   ||= $default_json;
   my $cv = AnyEvent->condvar;
 
   # default success handler sends back decoded json response
@@ -39,8 +43,8 @@ sub cvcb {
   my $cb = sub {
     my ($body, $headers) = @_;
     my $response;
-    eval { $response = decode_json($body); };
-    $cv->croak(pp(['decode_error', $@, $body, encode_json($headers)])) if ($@);
+    eval { $response = $json->decode($body); };
+    $cv->croak(pp(['decode_error', $@, $body, $json->decode($headers)])) if ($@);
     if ($headers->{Status} >= $status and $headers->{Status} < 400) {
       $success->($response);
     } else {
@@ -103,7 +107,7 @@ sub config {
 sub replicate {
   my ($self, $source, $target, $options) = @_;
   my ($cv, $cb) = cvcb($options);
-  my $body = encode_json({ source => $source, target => $target });
+  my $body = $default_json->encode({ source => $source, target => $target });
   http_request(
     POST    => $self->{url}.'_replicate', 
     headers => { 'Content-Type' => 'application/json' },

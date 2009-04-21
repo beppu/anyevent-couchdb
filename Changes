@@ -1,8 +1,10 @@
-1.10 UNRELEASED
+UNRELEASED
   * see if we can load new attachment data asynchronously.
-  * write tests
+  * write more tests
   * need to improve startkey/endkey/key JSON encoding.
-    Perhaps I should allow for a custom $json object.
+
+1.10 2009-04-21
+  - allow the use of custom JSON encoding objects
 
 1.09 2009-04-02
   - added support for _all_docs_by_seq

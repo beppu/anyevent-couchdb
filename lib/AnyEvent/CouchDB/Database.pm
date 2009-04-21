@@ -2,24 +2,33 @@ package AnyEvent::CouchDB::Database;
 
 use strict;
 use warnings;
+no  warnings 'once';
 use JSON::XS;
 use AnyEvent::HTTP;
 use Data::Dump::Streamer;
 use URI::Escape 'uri_escape_utf8';
 use IO::All;
 
+our $default_json;
+
 # manual import ;-)
-*cvcb = \&AnyEvent::CouchDB::cvcb;
+*cvcb         = *AnyEvent::CouchDB::cvcb;
+*default_json = *AnyEvent::CouchDB::default_json;
 
 our $query = sub {
   my $options = shift;
+  my $json    = $default_json;
   my @buf;
   if (defined($options) && keys %$options) {
     for my $name (keys %$options) {
       next if ($name eq 'error' || $name eq 'success');
       my $value = $options->{$name};
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
-        $value = ref($value) ? encode_json($value) : (defined $value) ? qq{"$value"} : 'null';
+        $value = ref($value)
+          ? $json->encode($value)
+          : (defined $value)
+            ? qq{"$value"}
+            : 'null';
       }
       if ($name eq 'group' || $name eq 'reduce' || $name eq 'descending' || $name eq 'include_docs') {
         $value = $value
@@ -42,13 +51,10 @@ our $code_to_string = sub {
   # ^- taken from CouchDB::View::Document ------^
 };
 
-our $json = sub {
-  ref($_[0]) ? encode_json($_[0]) : $_[0];
-};
-
 sub new {
-  my ($class, $name, $uri) = @_;
-  bless { name => $name, uri => $uri } => $class;
+  my ($class, $name, $uri, $json_encoder) = @_;
+  $json_encoder ||= $default_json;
+  bless { name => $name, uri => $uri, json_encoder => $json_encoder } => $class;
 }
 
 sub name {
@@ -59,9 +65,23 @@ sub uri {
   $_[0]->{uri}->as_string;
 }
 
+sub json_encoder {
+  my ($self, $encoder) = @_;
+  if ($encoder) {
+    $self->{json_encoder} = $encoder;
+  } else {
+    $self->{json_encoder};
+  }
+}
+
+sub json {
+  my ($self, $target) = @_;
+  ref($target) ? $self->json_encoder->encode($target) : $target;
+}
+
 sub compact {
   my ($self, $options) = @_;
-  my ($cv, $cb) = cvcb($options, 202);
+  my ($cv, $cb) = cvcb($options, 202, $self->json_encoder);
   http_request(
     POST    => ($self->uri . "_compact"),
     headers => { 'Content-Type' => 'application/json' },
@@ -72,7 +92,7 @@ sub compact {
 
 sub create {
   my ($self, $options) = @_;
-  my ($cv, $cb) = cvcb($options, 201);
+  my ($cv, $cb) = cvcb($options, 201, $self->json_encoder);
   http_request(
     PUT     => $self->uri,
     headers => { 'Content-Type' => 'application/json' },
@@ -83,7 +103,7 @@ sub create {
 
 sub drop {
   my ($self, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_request(
     DELETE  => $self->uri,
     $cb
@@ -93,41 +113,41 @@ sub drop {
 
 sub info {
   my ($self, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_get($self->uri, $cb);
   $cv;
 }
 
 sub all_docs {
   my ($self, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_get($self->uri.'_all_docs'.$query->($options), $cb);
   $cv;
 }
 
 sub all_docs_by_seq {
   my ($self, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_get($self->uri.'_all_docs_by_seq'.$query->($options), $cb);
   $cv;
 }
 
 sub open_doc {
   my ($self, $doc_id, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_get($self->uri.uri_escape_utf8($doc_id).$query->($options), $cb);
   $cv;
 }
 
 sub open_docs {
   my ($self, $doc_ids, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   $options ||= {};
   $options->{'include_docs'} = 'true';
   http_request(
     POST => $self->uri.'_all_docs'.$query->($options),
     headers => { 'Content-Type' => 'application/json' },
-    body    => $json->({"keys" => $doc_ids}),
+    body    => $self->json({"keys" => $doc_ids}),
     $cb
   );
   $cv;
@@ -150,7 +170,7 @@ sub save_doc {
       $doc->{_rev} = $resp->{rev};
     };
   }
-  my ($cv, $cb) = cvcb($options, 201);
+  my ($cv, $cb) = cvcb($options, 201, $self->json_encoder);
   my ($method, $uri);
   if (not defined $doc->{_id}) {
     $method = 'POST';
@@ -162,7 +182,7 @@ sub save_doc {
   http_request(
     $method => $uri.$query->($options),
     headers => { 'Content-Type' => 'application/json' },
-    body    => $json->($doc),
+    body    => $self->json($doc),
     $cb
   );
   $cv;
@@ -171,7 +191,7 @@ sub save_doc {
 sub remove_doc {
   my ($self, $doc, $options) = @_;
   die("Document is missing _id!") unless (defined $doc->{_id});
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_request(
     DELETE  => $self->uri.uri_escape_utf8($doc->{_id}).$query->({ rev => $doc->{_rev} }),
     $cb
@@ -210,7 +230,7 @@ sub attach {
       };
     };
   }
-  my ($cv, $cb) = cvcb($options, 201);
+  my ($cv, $cb) = cvcb($options, 201, $self->json_encoder);
   http_request(
     PUT => $self->uri.uri_escape_utf8($doc->{_id}).
       "/".uri_escape_utf8($attachment).$query->({ rev => $doc->{_rev} }),
@@ -240,7 +260,7 @@ sub detach {
       delete $doc->{_attachments}->{$attachment};
     };
   }
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_request(
     DELETE  => $self->uri.uri_escape_utf8($doc->{_id}).
       "/".uri_escape_utf8($attachment).$query->({ rev => $doc->{_rev} }),
@@ -251,11 +271,11 @@ sub detach {
 
 sub bulk_docs {
   my ($self, $docs, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   http_request(
     POST    => $self->uri.'_bulk_docs',
     headers => { 'Content-Type' => 'application/json' },
-    body    => $json->({ docs => $docs }),
+    body    => $self->json({ docs => $docs }),
     $cb
   );
   $cv;
@@ -263,7 +283,7 @@ sub bulk_docs {
 
 sub query {
   my ($self, $map_fun, $reduce_fun, $language, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   $language ||= (ref($map_fun) eq 'CODE') ? 'text/perl' : 'javascript';
   my $body = {
     language => $language,
@@ -275,7 +295,7 @@ sub query {
   http_request(
     POST    => $self->uri.'_temp_view'.$query->($options),
     headers => { 'Content-Type' => 'application/json' },
-    body    => encode_json($body),
+    body    => $self->json($body),
     $cb
   );
   $cv;
@@ -283,7 +303,7 @@ sub query {
 
 sub view {
   my ($self, $name, $options) = @_;
-  my ($cv, $cb) = cvcb($options);
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
   my ($dname, $vname) = split('/', $name);
   my $uri = $self->uri."/_design/".$dname."/_view/".$vname;
   if ($options->{keys}) {
@@ -291,18 +311,13 @@ sub view {
     http_request(
       'POST' => $uri,
       headers => { 'Content-Type' => 'application/json' },
-      body    => encode_json($body),
+      body    => $self->json($body),
       $cb
     );
   } else {
     http_get($uri.$query->($options), $cb);
   }
   $cv;
-}
-
-sub search {
-  my ($self, $query, $options) = @_;
-  warn "NOT IMPLEMENTED YET";
 }
 
 1;
@@ -346,6 +361,12 @@ This method returns the name of the database.
 =head3 $db->uri
 
 This method returns the base URI of the database.
+
+=head3 $db->json_encoder([ $json_encoder ])
+
+This method is a mutator for setting a custom JSON encoder.  You should
+pass in an object that responds to C<encode> and C<decode>.  L<JSON> and
+L<JSON::XS> are good candidates.
 
 =head2 Database Level Operations
 
