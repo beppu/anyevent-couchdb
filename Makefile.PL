@@ -17,7 +17,7 @@ WriteMakefile (
   LICENSE       => 'mit',
   VERSION_FROM  => 'lib/AnyEvent/CouchDB.pm',
   ABSTRACT_FROM => 'lib/AnyEvent/CouchDB.pm',
-  EXE_FILES     => [ ],
+  EXE_FILES     => [ 'bin/couchdb-push' ],
   META_MERGE    => {
     no_index    => { directory => [ qw(eg) ] },
   },
