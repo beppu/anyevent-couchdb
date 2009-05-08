@@ -1,0 +1,100 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use AnyEvent::CouchDB;
+use Getopt::Long;
+use File::Basename;
+use IO::All;
+use JSON;
+
+
+my $__help  = undef;
+
+GetOptions(
+  "help|h"  => \$__help,
+);
+
+my $json = JSON->new;
+
+if ($__help) {
+my $executable = basename $0;
+print qq{couchdb-push - push documents from the filesystem to CouchDB
+
+Usage:
+
+  $executable [OPTION]... <FILE>... <COUCHDB_DATABASE>
+
+Options:
+
+  -h, --help            This help message
+
+};
+exit 0;
+}
+
+my $name = pop;
+my $db   = couchdb($name);
+
+for (@ARGV) {
+  my $doc = undef;
+}
+
+exit 0;
+
+__END__
+
+=head1 NAME
+
+couchdb-push - push documents from the filesystem to CouchDB
+
+=head1 SYNOPSIS
+
+Usage:
+
+  couchdb-push [OPTION]... <FILE>... <COUCHDB_DATABASE>
+
+Pushing a directory of JSON documents to http://localhost:5984/db :
+
+  couchdb-push * db
+  couchdb-push * http://localhost:5984/db  # same thing
+
+  # The filenames will be used as document ids
+  # However, if a document's _id is set to null, we will let
+  #   CouchDB automatically assign an _id.
+
+Pushing one design document to db:
+
+  # The file "_design/comments" must exist in the filesystem.
+  couchdb-push _design/comments db
+
+=head1 DESCRIPTION
+
+This script will take a list of files and publish them to a CouchDB database.
+The filenames will be used as document ids in CouchDB, and slashes in the path
+will be escaped properly.  This will let you upload documents that have ids
+with '/'s in them (like '_design/docs').
+
+This script was intended to populate a CouchDB database with some initial
+documents.
+
+=head1 SEE ALSO
+
+L<AnyEvent::CouchDB>, L<AnyEvent::CouchDB::Database>
+
+=head1 AUTHOR
+
+John Beppu E<lt>john.beppu@gmail.comE<gt>
+
+=cut
+
+# Local Variables: ***
+# mode: cperl ***
+# indent-tabs-mode: nil ***
+# cperl-close-paren-offset: -2 ***
+# cperl-continued-statement-offset: 2 ***
+# cperl-indent-level: 2 ***
+# cperl-indent-parens-as-block: t ***
+# cperl-tab-always-indent: nil ***
+# End: ***
+# vim:tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab
