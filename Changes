@@ -7,12 +7,11 @@ UNRELEASED
   - Implemented special case for unescaping design document ids in open_doc().
     id => '_design/docs'  => '/database/_design/docs'      # unescape '/'
     id => 'whatever/else' => '/database/whatever%2Felse'   # leave '/' escaped as %2F
-  o CouchDB external support
-    o get|put|post|delete $url, $params, $headers
-  o bin/couchdb-upload - upload a directory of documents to a couch db
-    o filenames map to ids
-      o flatten path recursively.
-    o automatic ids are given to filenames in the _auto directory
+  - bin/couchdb-push - Publish JSON-encoded documents from the filesystem to CouchDB
+    - filenames map to ids
+    - automatic ids are currently not allowed
+  o Arbitrary URL support
+    o get|put|post|delete $url, $options
 
 1.10 2009-04-21
   - allow the use of custom JSON encoding objects
