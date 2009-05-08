@@ -346,6 +346,62 @@ sub get {
 }
 
 sub post {
+  my ($self, $path, $options) = @_;
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
+  my $headers = $options->{headers};
+  my $uri;
+  if (ref($headers) eq 'HASH') {
+    delete $options->{headers};
+  } else {
+    $headers = {};
+  }
+  $uri = $self->uri."$path";
+  http_request(
+    POST    => $uri,
+    headers => $headers,
+    body    => $query->($options),
+    $cb
+  );
+  $cv;
+}
+
+sub delete {
+  my ($self, $path, $options) = @_;
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
+  my $headers = $options->{headers};
+  my $uri;
+  if (ref($headers) eq 'HASH') {
+    delete $options->{headers};
+  } else {
+    $headers = {};
+  }
+  $uri = $self->uri."$path".$query->($options);
+  http_request(
+    DELETE  => $uri,
+    headers => $headers,
+    $cb
+  );
+  $cv;
+}
+
+sub put {
+  my ($self, $path, $options) = @_;
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
+  my $headers = $options->{headers};
+  my $uri;
+  if (ref($headers) eq 'HASH') {
+    delete $options->{headers};
+  } else {
+    $headers = {};
+  }
+  $uri = $self->uri."$path";
+  http_request(
+    PUT     => $uri,
+    headers => $headers,
+    body    => $query->($options),
+    $cb
+  );
+  $cv;
 }
 
 1;

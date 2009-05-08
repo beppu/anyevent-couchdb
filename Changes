@@ -10,8 +10,8 @@ UNRELEASED
   - bin/couchdb-push - Publish JSON-encoded documents from the filesystem to CouchDB
     - filenames map to ids
     - automatic ids are currently not allowed
-  o Arbitrary URL support
-    o get|put|post|delete $url, $options
+  - Arbitrary URL support
+    - get|put|post|delete $path, $options
 
 1.10 2009-04-21
   - allow the use of custom JSON encoding objects
