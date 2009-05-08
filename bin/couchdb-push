@@ -7,12 +7,15 @@ use Getopt::Long;
 use File::Basename;
 use IO::All;
 use JSON;
+use URI::Escape;
 
 
-my $__help  = undef;
+my $__help    = undef;
+my $__verbose = undef;
 
 GetOptions(
-  "help|h"  => \$__help,
+  "help|h"    => \$__help,
+  "verbose|v" => \$__verbose,
 );
 
 my $json = JSON->new;
@@ -28,6 +31,7 @@ Usage:
 Options:
 
   -h, --help            This help message
+  -v, --verbose         Verbose output.
 
 };
 exit 0;
@@ -36,8 +40,23 @@ exit 0;
 my $name = pop;
 my $db   = couchdb($name);
 
+print "db: " . $db->uri . "\n" if ($__verbose);
+
 for (@ARGV) {
-  my $doc = undef;
+  my $file = io($_);
+  my $id   = uri_escape_utf8($_);
+  my $doc  = $json->decode(scalar $file->all);
+  unless (defined $doc->{_id}) {
+    $doc->{_id} = $id;
+  }
+  eval {
+    $db->save_doc($doc)->recv;
+  };
+  if ($@) {
+    warn $@;
+  } else {
+    print "  $id\n" if ($__verbose);
+  }
 }
 
 exit 0;
@@ -46,7 +65,7 @@ __END__
 
 =head1 NAME
 
-couchdb-push - push documents from the filesystem to CouchDB
+couchdb-push - Push documents from the filesystem to CouchDB
 
 =head1 SYNOPSIS
 
