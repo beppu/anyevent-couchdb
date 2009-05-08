@@ -108,13 +108,10 @@ Overwrite existing documents when pushing to mydb:
 
 =head1 DESCRIPTION
 
-This script will take a list of files and publish them to a CouchDB database.
-The paths of the filenames will be used as document ids in CouchDB, and slashes
-in the path will be escaped properly.  This will let you upload documents that
-have ids with '/'s in them (like '_design/docs').
-
-The original use-case for this script is the initial installation of
-design documents.
+This script will take a list of JSON-encoded files and publish them to a
+CouchDB database.  The paths of the filenames will be used as document ids in
+CouchDB, and slashes in the path will be escaped properly.  This will let you
+upload documents that have ids with '/'s in them (like '_design/docs').
 
 =head1 SEE ALSO
 
