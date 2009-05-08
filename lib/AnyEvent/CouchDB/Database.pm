@@ -324,6 +324,30 @@ sub view {
   $cv;
 }
 
+# arbitrary url support
+
+sub get {
+  my ($self, $path, $options) = @_;
+  my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
+  my $headers = $options->{headers};
+  my $uri;
+  if (ref($headers) eq 'HASH') {
+    delete $options->{headers};
+  } else {
+    $headers = {};
+  }
+  $uri = $self->uri."$path".$query->($options);
+  http_request(
+    GET     => $uri,
+    headers => $headers,
+    $cb
+  );
+  $cv;
+}
+
+sub post {
+}
+
 1;
 
 __END__
