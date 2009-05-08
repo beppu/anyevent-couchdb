@@ -12,10 +12,12 @@ use URI::Escape;
 
 my $__help    = undef;
 my $__verbose = undef;
+my $__force   = undef;
 
 GetOptions(
   "help|h"    => \$__help,
   "verbose|v" => \$__verbose,
+  "force|f"   => \$__force,
 );
 
 my $json = JSON->new;
@@ -31,7 +33,9 @@ Usage:
 Options:
 
   -h, --help            This help message
-  -v, --verbose         Verbose output.
+  -v, --verbose         Verbose output
+
+  -f, --force           Overwrite documents that already exist
 
 };
 exit 0;
@@ -43,17 +47,30 @@ my $db   = couchdb($name);
 print "db: " . $db->uri . "\n" if ($__verbose);
 
 for (@ARGV) {
-  my $file = io($_);
-  my $id   = uri_escape_utf8($_);
-  my $doc  = $json->decode(scalar $file->all);
-  unless (defined $doc->{_id}) {
-    $doc->{_id} = $id;
-  }
+  my $file    = io($_);
+  my $id      = uri_escape_utf8($_);
+  my $doc     = $json->decode(scalar $file->all);
+  $doc->{_id} = $id;
   eval {
     $db->save_doc($doc)->recv;
   };
   if ($@) {
-    warn $@;
+    #warn "first save attempt failed: $@" if ($__verbose);
+    if ($__force) {
+      my $old_doc  = $db->open_doc($id)->recv;
+      $doc->{_id}  = $old_doc->{_id};
+      $doc->{_rev} = $old_doc->{_rev};
+      eval {
+        $db->save_doc($doc)->recv;
+      };
+      if ($@) {
+        warn $@;
+      } else {
+        print "  $id { _id: $doc->{_id}, _rev: $doc->{_rev} }\n" if ($__verbose);
+      }
+    } else {
+      warn $@;
+    }
   } else {
     print "  $id\n" if ($__verbose);
   }
@@ -73,29 +90,31 @@ Usage:
 
   couchdb-push [OPTION]... <FILE>... <COUCHDB_DATABASE>
 
-Pushing a directory of JSON documents to http://localhost:5984/db :
+Pushing a directory of JSON documents to http://localhost:5984/mydb :
 
-  couchdb-push * db
-  couchdb-push * http://localhost:5984/db  # same thing
+  couchdb-push * http://localhost:5984/mydb
+  couchdb-push * mydb                         # same as above
 
-  # The filenames will be used as document ids
-  # However, if a document's _id is set to null, we will let
-  #   CouchDB automatically assign an _id.
+  # Note that the filenames will be used as document ids
 
-Pushing one design document to db:
+Pushing one design document to mydb:
 
   # The file "_design/comments" must exist in the filesystem.
-  couchdb-push _design/comments db
+  couchdb-push _design/comments mydb
+
+Overwrite existing documents when pushing to mydb:
+
+  couchdb-push --force * mydb
 
 =head1 DESCRIPTION
 
 This script will take a list of files and publish them to a CouchDB database.
-The filenames will be used as document ids in CouchDB, and slashes in the path
-will be escaped properly.  This will let you upload documents that have ids
-with '/'s in them (like '_design/docs').
+The paths of the filenames will be used as document ids in CouchDB, and slashes
+in the path will be escaped properly.  This will let you upload documents that
+have ids with '/'s in them (like '_design/docs').
 
-This script was intended to populate a CouchDB database with some initial
-documents.
+The original use-case for this script is the initial installation of
+design documents.
 
 =head1 SEE ALSO
 
