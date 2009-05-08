@@ -567,6 +567,16 @@ C<\%options>, can be used to manipulate the result-set in standard ways.
 
 This method returns a condvar.
 
+=head2 Generic HTTP Methods
+
+=head3 $cv = $db->get($path, [ \%options ])
+
+=head3 $cv = $db->post($path, [ \%options ])
+
+=head3 $cv = $db->put($path, [ \%options ])
+
+=head3 $cv = $db->delete($path, [ \%options ])
+
 =head1 AUTHOR
 
 John BEPPU E<lt>beppu@cpan.orgE<gt>
