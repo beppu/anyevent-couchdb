@@ -5,6 +5,8 @@ UNRELEASED
 
 1.11 2009-05-08
   - Implemented special case for unescaping design document ids in open_doc().
+    id => '_design/docs'  => '/database/_design/docs'      # unescape '/'
+    id => 'whatever/else' => '/database/whatever%2Felse'   # leave '/' escaped as %2F
   o CouchDB external support
     o get|put|post|delete $url, $params, $headers
   o bin/couchdb-upload - upload a directory of documents to a couch db
