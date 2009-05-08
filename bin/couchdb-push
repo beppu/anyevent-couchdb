@@ -47,10 +47,16 @@ my $db   = couchdb($name);
 print "db: " . $db->uri . "\n" if ($__verbose);
 
 for (@ARGV) {
-  my $file    = io($_);
-  my $id      = uri_escape_utf8($_);
-  my $doc     = $json->decode(scalar $file->all);
+  my $file = io($_);
+  my $doc  = $json->decode(scalar $file->all);
+
+  # special '/' handling for design documents
+  my $id = uri_escape_utf8($_);
+  if (qr{^_design%2F}) {
+    $id =~ s{%2F}{/}g;
+  }
   $doc->{_id} = $id;
+
   eval {
     $db->save_doc($doc)->recv;
   };
