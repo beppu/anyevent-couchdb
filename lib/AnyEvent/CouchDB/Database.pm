@@ -135,7 +135,11 @@ sub all_docs_by_seq {
 sub open_doc {
   my ($self, $doc_id, $options) = @_;
   my ($cv, $cb) = cvcb($options, undef, $self->json_encoder);
-  http_get($self->uri.uri_escape_utf8($doc_id).$query->($options), $cb);
+  my $id = uri_escape_utf8($doc_id);
+  if ($id =~ qr{^_design%2F}) {
+    $id =~ s{%2F}{/}g;
+  }
+  http_get($self->uri.$id.$query->($options), $cb);
   $cv;
 }
 
@@ -309,7 +313,7 @@ sub view {
   if ($options->{keys}) {
     my $body = { keys => $options->{keys} };
     http_request(
-      'POST' => $uri,
+      POST    => $uri,
       headers => { 'Content-Type' => 'application/json' },
       body    => $self->json($body),
       $cb

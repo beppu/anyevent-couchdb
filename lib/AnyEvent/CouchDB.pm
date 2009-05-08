@@ -44,7 +44,7 @@ sub cvcb {
     my ($body, $headers) = @_;
     my $response;
     eval { $response = $json->decode($body); };
-    $cv->croak(pp(['decode_error', $@, $body, $json->decode($headers)])) if ($@);
+    $cv->croak(pp(['decode_error', $@, $body, $headers])) if ($@);
     if ($headers->{Status} >= $status and $headers->{Status} < 400) {
       $success->($response);
     } else {

@@ -4,6 +4,7 @@ UNRELEASED
   * need to improve startkey/endkey/key JSON encoding.
 
 1.11 2009-05-08
+  - Implemented special case for unescaping design document ids in open_doc().
   o CouchDB external support
     o get|put|post|delete $url, $params, $headers
   o bin/couchdb-upload - upload a directory of documents to a couch db
