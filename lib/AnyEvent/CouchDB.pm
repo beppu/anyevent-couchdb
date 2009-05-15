@@ -18,7 +18,7 @@ use base 'Exporter';
 our @EXPORT = qw(couch couchdb);
 
 # default JSON encoder
-our $default_json = JSON::XS->new;
+our $default_json = JSON::XS->new->utf8;
 
 sub cvcb {
   my ($options, $status, $json) = @_;
