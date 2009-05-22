@@ -3,6 +3,9 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.12 2009-05-22
+  - Set utf8 flag on default JSON::XS object (by Yuval Kogman)
+
 1.11 2009-05-08
   - Implemented special case for unescaping design document ids in open_doc().
     id => '_design/docs'  => '/database/_design/docs'      # unescape '/'
