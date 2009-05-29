@@ -449,8 +449,8 @@ This method returns the base URI of the database.
 =head3 $db->json_encoder([ $json_encoder ])
 
 This method is a mutator for setting a custom JSON encoder.  You should
-pass in an object that responds to C<encode> and C<decode>.  L<JSON> and
-L<JSON::XS> are good candidates.
+pass in an object that responds to C<encode> and C<decode>.  Instances of
+L<JSON> and L<JSON::XS> are good candidates.
 
 =head2 Database Level Operations
 
