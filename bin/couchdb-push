@@ -22,7 +22,7 @@ GetOptions(
 
 my $json = JSON->new;
 
-if ($__help) {
+if ($__help || @ARGV == 0) {
 my $executable = basename $0;
 print qq{couchdb-push - push documents from the filesystem to CouchDB
 
@@ -47,21 +47,24 @@ my $db   = couchdb($name);
 print "db: " . $db->uri . "\n" if ($__verbose);
 
 for (@ARGV) {
-  my $file = io($_);
-  my $doc  = $json->decode(scalar $file->all);
-
-  # special '/' handling for design documents
-  my $id = uri_escape_utf8($_);
-  if (qr{^_design%2F}) {
-    $id =~ s{%2F}{/}g;
+  my $file;
+  my $doc;
+  eval {
+    $file = io($_);
+    $doc  = $json->decode(scalar $file->all);
+  };
+  if ($@) {
+    die "$_ : $@";
   }
+
+  my $id = uri_unescape($_);
   $doc->{_id} = $id;
 
   eval {
     $db->save_doc($doc)->recv;
   };
   if ($@) {
-    #warn "first save attempt failed: $@" if ($__verbose);
+    warn "first save attempt failed: $@" if ($__verbose);
     if ($__force) {
       my $old_doc  = $db->open_doc($id)->recv;
       $doc->{_id}  = $old_doc->{_id};
