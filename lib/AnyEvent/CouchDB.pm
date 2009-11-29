@@ -10,7 +10,6 @@ use AnyEvent::CouchDB::Database;
 use URI;
 use URI::Escape;
 use File::Basename;
-use Data::Dump 'pp';
 
 use Exporter;
 use base 'Exporter';
@@ -37,14 +36,14 @@ sub cvcb {
   my $error = sub {
     my ($headers, $response) = @_;
     $options->{error}->(@_) if ($options->{error});
-    $cv->croak(pp([$headers, $response]));
+    $cv->croak([$headers, $response]);
   };
 
   my $cb = sub {
     my ($body, $headers) = @_;
     my $response;
     eval { $response = $json->decode($body); };
-    $cv->croak(pp(['decode_error', $@, $body, $headers])) if ($@);
+    $cv->croak(['decode_error', $@, $body, $headers]) if ($@);
     if ($headers->{Status} >= $status and $headers->{Status} < 400) {
       $success->($response);
     } else {
