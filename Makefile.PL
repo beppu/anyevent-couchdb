@@ -26,7 +26,6 @@ WriteMakefile (
     'CouchDB::View'        => 0,
     'JSON::XS'             => 0,
     'Data::Dump::Streamer' => 0,
-    'Data::Dump'           => 0,
     'IO::All'              => 0,
   },
 );
