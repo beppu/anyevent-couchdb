@@ -60,7 +60,7 @@ sub couch {
 sub couchdb {
   my $db = shift;
   if ($db =~ /^http:/) {
-    my $uri  = $db;
+    my $uri  = URI->new($db);
     my $name = basename($db);
     $uri .= '/' if ($uri !~ /\/$/);
     AnyEvent::CouchDB::Database->new($name, $uri);
