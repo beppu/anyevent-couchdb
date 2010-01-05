@@ -3,6 +3,9 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.13 2009-01-04
+  - make the couchdb() function bless its URI (by Douglas Hunter)
+
 1.12 2009-05-22
   - Set utf8 flag on default JSON::XS object (by Yuval Kogman)
 
