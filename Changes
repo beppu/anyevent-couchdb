@@ -3,6 +3,9 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.14 2009-02-25
+  - fixed a minor bug in the couchdb() function (by Michael Zedeler)
+
 1.13 2009-01-04
   - make the couchdb() function bless its URI (by Douglas Hunter)
 
