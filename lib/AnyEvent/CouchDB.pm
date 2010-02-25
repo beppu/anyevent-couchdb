@@ -60,9 +60,9 @@ sub couch {
 sub couchdb {
   my $db = shift;
   if ($db =~ /^http:/) {
+    $db .= '/' if ($db !~ /\/$/);
     my $uri  = URI->new($db);
     my $name = basename($db);
-    $uri .= '/' if ($uri !~ /\/$/);
     AnyEvent::CouchDB::Database->new($name, $uri);
   } else {
     AnyEvent::CouchDB->new->db($db);
@@ -429,9 +429,11 @@ Jan-Felix Wittman (for bug fixes, feature enhancements, and interesting couchdb 
 
 Yuval Kogman (for bug fixes)
 
+Michael Zedeler (for bug fixes)
+
 =head1 COPYRIGHT
 
-Copyright (c) 2008-2009 John BEPPU E<lt>beppu@cpan.orgE<gt>.
+Copyright (c) 2008-2010 John BEPPU E<lt>beppu@cpan.orgE<gt>.
 
 =head2 The "MIT" License
 
