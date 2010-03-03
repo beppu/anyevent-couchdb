@@ -4,7 +4,7 @@ UNRELEASED
   * need to improve startkey/endkey/key JSON encoding.
 
 1.15 2010-03-03
-  - add HEAD method; use custom http headers; add POD about the http headers
+  - add HEAD method; use custom http headers; add POD about the http headers (by franck)
 
 1.14 2010-02-25
   - fixed a minor bug in the couchdb() function (by Michael Zedeler)
