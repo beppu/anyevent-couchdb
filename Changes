@@ -3,10 +3,13 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
-1.14 2009-02-25
+1.15 2010-03-03
+  - add HEAD method; use custom http headers; add POD about the http headers
+
+1.14 2010-02-25
   - fixed a minor bug in the couchdb() function (by Michael Zedeler)
 
-1.13 2009-01-04
+1.13 2010-01-04
   - make the couchdb() function bless its URI (by Douglas Hunter)
 
 1.12 2009-05-22
