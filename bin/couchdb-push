@@ -8,16 +8,20 @@ use File::Basename;
 use IO::All;
 use JSON;
 use URI::Escape;
+use MIME::Base64;
 
-
-my $__help    = undef;
-my $__verbose = undef;
-my $__force   = undef;
+my $__help     = undef;
+my $__verbose  = undef;
+my $__force    = undef;
+my $__user     = undef;
+my $__password = undef;
 
 GetOptions(
-  "help|h"    => \$__help,
-  "verbose|v" => \$__verbose,
-  "force|f"   => \$__force,
+    "help|h"       => \$__help,
+    "verbose|v"    => \$__verbose,
+    "force|f"      => \$__force,
+    "user|u=s"     => \$__user,
+    "password|p=s" => \$__password,
 );
 
 my $json = JSON->new;
@@ -34,7 +38,8 @@ Options:
 
   -h, --help            This help message
   -v, --verbose         Verbose output
-
+  -u, --user            user
+  -p, --password        password
   -f, --force           Overwrite documents that already exist
 
 };
@@ -45,6 +50,11 @@ my $name = pop;
 my $db   = couchdb($name);
 
 print "db: " . $db->uri . "\n" if ($__verbose);
+
+my $options;
+if ($__user && $__password) {
+  $options->{headers}->{Authentication} = "Basic ".encode_base64($__user.':'.$__password,'');
+}
 
 for (@ARGV) {
   my $file;
@@ -61,16 +71,16 @@ for (@ARGV) {
   $doc->{_id} = $id;
 
   eval {
-    $db->save_doc($doc)->recv;
+    $db->save_doc($doc,$options)->recv;
   };
   if ($@) {
     warn "first save attempt failed: $@" if ($__verbose);
     if ($__force) {
-      my $old_doc  = $db->open_doc($id)->recv;
+      my $old_doc  = $db->open_doc($id,$options)->recv;
       $doc->{_id}  = $old_doc->{_id};
       $doc->{_rev} = $old_doc->{_rev};
       eval {
-        $db->save_doc($doc)->recv;
+        $db->save_doc($doc,$options)->recv;
       };
       if ($@) {
         warn $@;
