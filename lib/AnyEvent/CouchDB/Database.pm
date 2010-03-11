@@ -14,6 +14,7 @@ our $default_json;
 # manual import ;-)
 *cvcb         = *AnyEvent::CouchDB::cvcb;
 *default_json = *AnyEvent::CouchDB::default_json;
+*_build_headers = *AnyEvent::CouchDB::_build_headers;
 
 our $query = sub {
   my $options = shift;
@@ -21,7 +22,7 @@ our $query = sub {
   my @buf;
   if (defined($options) && keys %$options) {
     for my $name (keys %$options) {
-      next if ($name eq 'error' || $name eq 'success');
+      next if ($name eq 'error' || $name eq 'success' || $name eq 'headers');
       my $value = $options->{$name};
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
         $value = ref($value)
@@ -352,28 +353,6 @@ sub view {
     http_get( $uri . $query->($options), $cb );
   }
   $cv;
-}
-
-# arbitrary url support
-sub _build_headers {
-  my ( $self, $options ) = @_;
-  my $headers = $options->{headers};
-  if ( ref($headers) eq 'HASH' ) {
-    delete $options->{headers};
-  }
-  else {
-    $headers = {};
-  }
-
-  # should probably move $options->{type} to $options->{headers}
-  if ( exists $options->{type} ) {
-    $headers->{'Content-Type'} = $options->{type};
-  }
-  elsif ( !exists $headers->{'Content-Type'} ) {
-    $headers->{'Content-Type'} = 'application/json';
-  }
-
-  return $headers;
 }
 
 sub head {

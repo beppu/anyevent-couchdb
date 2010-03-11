@@ -19,6 +19,28 @@ our @EXPORT = qw(couch couchdb);
 # default JSON encoder
 our $default_json = JSON::XS->new->utf8;
 
+# arbitrary url support
+sub _build_headers {
+  my ( $self, $options ) = @_;
+  my $headers = $options->{headers};
+  if ( ref($headers) eq 'HASH' ) {
+    delete $options->{headers};
+  }
+  else {
+    $headers = {};
+  }
+
+  # should probably move $options->{type} to $options->{headers}
+  if ( exists $options->{type} ) {
+    $headers->{'Content-Type'} = $options->{type};
+  }
+  elsif ( !exists $headers->{'Content-Type'} ) {
+    $headers->{'Content-Type'} = 'application/json';
+  }
+
+  return $headers;
+}
+
 sub cvcb {
   my ($options, $status, $json) = @_;
   $status ||= 200;
@@ -78,7 +100,11 @@ sub new {
 sub all_dbs {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
-  http_get $self->{url}.'_all_dbs', $cb;
+  http_request(
+    GET => $self->{url}.'_all_dbs',
+    headers => $self->_build_headers($options),
+    $cb
+  );
   $cv;
 }
 
@@ -92,14 +118,22 @@ sub db {
 sub info {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
-  http_get $self->{url}->as_string, $cb;
+  http_request(
+    GET => $self->{url}->as_string,
+    headers => $self->_build_headers($options),
+    $cb
+  );
   $cv;
 }
 
 sub config {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
-  http_get $self->{url} . '_config', $cb;
+  http_request(
+    GET => $self->{url} . '_config',
+    headers => $self->_build_headers($options),
+    $cb
+  );
   $cv;
 }
 
@@ -108,9 +142,9 @@ sub replicate {
   my ($cv, $cb) = cvcb($options);
   my $body = $default_json->encode({ source => $source, target => $target });
   http_request(
-    POST    => $self->{url}.'_replicate', 
-    headers => { 'Content-Type' => 'application/json' },
-    body    => $body, 
+    POST    => $self->{url}.'_replicate',
+    headers => $self->_build_headers($options),
+    body    => $body,
     $cb
   );
   $cv;
@@ -154,9 +188,9 @@ Query a view:
 Finally, an asynchronous example:
 
   # Calling cb will not block whereas calling recv *will* block.
-  $db->all_docs->cb(sub { 
+  $db->all_docs->cb(sub {
     my ($cv) = @_;
-    print pp( $cv->recv ), "\n"; 
+    print pp( $cv->recv ), "\n";
   });
 
   # However, you have to be in an event loop at some point in time.
@@ -183,7 +217,7 @@ You may have noticed that many of the examples in the SYNOPSIS call C<recv>
 on the condvar.  You're allowed to do this under 2 circumstances:
 
 =over 4
-      
+
 =item Either you're in a main program,
 
 Main programs are "allowed to call C<recv> blockingly", according to the
@@ -270,7 +304,7 @@ this hashref, and they will be called upon success or failure of the request.
 =head2 Documents Are Plain Hashrefs
 
 Finally, note that the CouchDB documents you get back are plain hashrefs.  They
-are not blessed into any kind of document class.  
+are not blessed into any kind of document class.
 
 
 =head1 API
