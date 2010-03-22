@@ -111,7 +111,7 @@ sub all_dbs {
 sub db {
   my ($self, $name) = @_;
   my $uri = $self->{url}->clone;
-  $uri->path($name . "/");
+  $uri->path(($uri->path ? $uri->path . $name : $name) . "/");
   AnyEvent::CouchDB::Database->new($name, $uri);
 }
 
