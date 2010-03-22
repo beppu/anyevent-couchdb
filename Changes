@@ -3,8 +3,13 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.16 2010-03-22
+  - added auth support to bin/couchdb-push (by franckcuny)
+  - if we have a path in the url, append the db name to this path (by franckcuny)
+    "It's usefull when your couchdb is behind a proxy and mounted on a different URL than '/'."
+
 1.15 2010-03-03
-  - add HEAD method; use custom http headers; add POD about the http headers (by franck)
+  - add HEAD method; use custom http headers; add POD about the http headers (by franckcuny)
 
 1.14 2010-02-25
   - fixed a minor bug in the couchdb() function (by Michael Zedeler)
