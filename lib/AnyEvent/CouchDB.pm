@@ -140,7 +140,11 @@ sub config {
 sub replicate {
   my ($self, $source, $target, $options) = @_;
   my ($cv, $cb) = cvcb($options);
-  my $body = $default_json->encode({ source => $source, target => $target });
+  my $replication = {source => $source, target => $target};
+  if (my $continuous = delete $options->{continuous}) {
+    $replication->{continuous} = 1;
+  }
+  my $body = $default_json->encode($replication);
   http_request(
     POST    => $self->{url}.'_replicate',
     headers => $self->_build_headers($options),
@@ -376,7 +380,8 @@ This method requests that a C<$source> CouchDB database be replicated to a
 C<$target> CouchDB database.  To represent a local database, pass in just
 the name of the database.  To represent a remote database, pass in the
 URL to that database.  Note that both databases must already exist for
-the replication to work.
+the replication to work. To create a continuous replication, set the
+B<continuous> option to true.
 
 B<Examples>:
 
@@ -388,6 +393,9 @@ B<Examples>:
 
   # remote to local
   $couch->replicate('http://elsewhere/remote_db', 'local_db')->recv
+
+  # local to remote with continuous replication
+  $couch->replicate('local_db', 'http://elsewhere/remote_db', {continuous => 1})->recv
 
 As usual, this method returns a condvar that you're expected to call C<recv> on.
 Doing this will return a hashref that looks something like this upon success:
