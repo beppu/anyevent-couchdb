@@ -3,6 +3,9 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.17 2010-03-26
+  - support to continuous replication, close RT #54922 (by franckcuny)
+
 1.16 2010-03-22
   - added auth support to bin/couchdb-push (by franckcuny)
   - if we have a path in the url, append the db name to this path (by franckcuny)
