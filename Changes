@@ -3,6 +3,9 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.18 2010-04-15
+  - encode the exception message as json (by franckcuny)
+
 1.17 2010-03-26
   - support to continuous replication, close RT #54922 (by franckcuny)
 
