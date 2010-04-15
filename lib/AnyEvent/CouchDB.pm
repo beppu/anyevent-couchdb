@@ -58,14 +58,14 @@ sub cvcb {
   my $error = sub {
     my ($headers, $response) = @_;
     $options->{error}->(@_) if ($options->{error});
-    $cv->croak([$headers, $response]);
+    $cv->croak(encode_json [$headers, $response]);
   };
 
   my $cb = sub {
     my ($body, $headers) = @_;
     my $response;
     eval { $response = $json->decode($body); };
-    $cv->croak(['decode_error', $@, $body, $headers]) if ($@);
+    $cv->croak(encode_json ['decode_error', $@, $body, $headers]) if ($@);
     if ($headers->{Status} >= $status and $headers->{Status} < 400) {
       $success->($response);
     } else {
