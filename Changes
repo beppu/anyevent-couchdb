@@ -3,6 +3,9 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.19 2010-05-06
+  - AnyEvent::CouchDB::Stream !!! (by franckcuny)
+
 1.18 2010-04-15
   - encode the exception message as json (by franckcuny)
 
