@@ -6,7 +6,7 @@ no  warnings 'once';
 use JSON::XS;
 use AnyEvent::HTTP;
 use Data::Dump::Streamer;
-use URI::Escape 'uri_escape_utf8';
+use URI::Escape qw( uri_escape uri_escape_utf8 );
 use IO::All;
 
 our $default_json;
@@ -22,21 +22,23 @@ our $query = sub {
   my @buf;
   if (defined($options) && keys %$options) {
     for my $name (keys %$options) {
-      next if ($name eq 'error' || $name eq 'success' || $name eq 'headers');
+      next if ($name eq 'error' || $name eq 'success');
       my $value = $options->{$name};
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
         $value = ref($value)
-          ? $json->encode($value)
+          ? uri_escape($json->encode($value))
           : (defined $value)
-            ? qq{"$value"}
+            ? uri_escape_utf8(qq{"$value"})
             : 'null';
+      } else {
+        $value = uri_escape_utf8($value);
       }
       if ($name eq 'group' || $name eq 'reduce' || $name eq 'descending' || $name eq 'include_docs') {
         $value = $value
           ? ( ($value eq 'false') ? 'false' : 'true' )
           : 'false';
       }
-      push @buf, "$name=".uri_escape_utf8($value);
+      push @buf, "$name=$value";
     }
   }
   (@buf)
