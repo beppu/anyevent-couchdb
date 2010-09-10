@@ -273,6 +273,19 @@ sub attach {
   $cv;
 }
 
+sub open_attachment {
+  my ( $self, $doc, $attachment, $options ) = @_;
+  my ( $cv, $cb ) = cvcb( $options, undef, _raw->new );
+  http_request(
+    GET => $self->uri
+        . uri_escape_utf8( $doc->{_id} ) . "/"
+        . uri_escape_utf8($attachment),
+    headers => $self->_build_headers($options),
+    $cb
+  );
+  $cv;
+}
+
 sub detach {
   my ( $self, $doc, $attachment, $options ) = @_;
   if ( $options->{success} ) {
@@ -424,6 +437,9 @@ sub put {
   $cv;
 }
 
+package _raw;
+sub decode { $_[1] }
+sub new { bless {}, shift }
 1;
 
 __END__
@@ -552,6 +568,14 @@ This method removes an attachment from a document, and it returns a condvar.
 B<Example>:
 
   $db->detach($doc, "issue.net")->recv;
+
+=head3 $cv = $db->open_attachment($doc, $attachment)
+
+This method retrieves an attachment and returns the contents as a condvar.
+
+B<Example>:
+
+  my $body = $db->open_attachment($doc, "issue.net")->recv;
 
 =head3 $cv = $db->bulk_docs(\@docs, [ \%options ])
 
