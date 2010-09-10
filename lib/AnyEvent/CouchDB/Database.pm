@@ -275,7 +275,30 @@ sub attach {
 
 sub open_attachment {
   my ( $self, $doc, $attachment, $options ) = @_;
-  my ( $cv, $cb ) = cvcb( $options, undef, _raw->new );
+  my $cv = AnyEvent->condvar;
+
+  # passthrough handler without json encoding
+  my $success = sub {
+    $options->{success}->(@_) if ($options->{success});
+    $cv->send(@_);
+  };
+
+  # error handler that croaks with http headers
+  my $error = sub {
+    my $headers = shift;
+    $options->{error}->(@_) if ($options->{error});
+    $cv->croak(encode_json $headers);
+  };
+
+  my $cb = sub {
+    my ($body, $headers) = @_;
+    if ($headers->{Status} >= 200 and $headers->{Status} < 400) {
+      $success->(@_);
+    } else {
+      $error->($headers);
+    }
+  };
+
   http_request(
     GET => $self->uri
         . uri_escape_utf8( $doc->{_id} ) . "/"
@@ -437,10 +460,6 @@ sub put {
   $cv;
 }
 
-package _raw;
-sub decode { $_[1] }
-sub new { bless {}, shift }
-1;
 
 __END__
 
@@ -575,7 +594,8 @@ This method retrieves an attachment and returns the contents as a condvar.
 
 B<Example>:
 
-  my $body = $db->open_attachment($doc, "issue.net")->recv;
+  my($body, $headers) = $db->open_attachment($doc, "issue.net")->recv;
+  my $content_type    = $headers->{'content-type'};
 
 =head3 $cv = $db->bulk_docs(\@docs, [ \%options ])
 
