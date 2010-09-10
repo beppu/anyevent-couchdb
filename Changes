@@ -1,4 +1,5 @@
 UNRELEASED
+  * fetch attachments using open_attachment().
   * see if we can load new attachment data asynchronously.
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
