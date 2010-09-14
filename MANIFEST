@@ -1,3 +1,5 @@
+.project
+.shipit
 bin/couchdb-push
 Changes
 edit
@@ -14,4 +16,4 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 README
 t/00_basic.t
-.shipit
+t/10_attachments.t
