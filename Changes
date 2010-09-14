@@ -1,8 +1,10 @@
 UNRELEASED
-  * fetch attachments using open_attachment().
   * see if we can load new attachment data asynchronously.
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
+
+1.20 2010-09-13
+  - fetch attachments using open_attachment(). (by Michael Zedeler)
 
 1.19 2010-05-06
   - AnyEvent::CouchDB::Stream !!! (by franckcuny)
