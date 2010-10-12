@@ -28,7 +28,6 @@ WriteMakefile (
     'Data::Dump::Streamer' => 0,
     'IO::All'              => 0,
     'Scope::Guard'         => 0,
-    'Exception::Class'     => 1.32,
   },
 );
 
