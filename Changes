@@ -6,7 +6,8 @@ UNRELEASED
 1.21 2010-09-13
   - Had some problems with PAUSE.  Same as 1.20.  Reuploading.
 
-1.20 2010-09-13
+1.20 2010-05-13
+  - a double-utf8 bug was fixed (by Stéphane)
   - fetch attachments using open_attachment(). (by Michael Zedeler)
 
 1.19 2010-05-06

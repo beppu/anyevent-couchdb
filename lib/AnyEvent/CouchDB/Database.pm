@@ -377,7 +377,7 @@ sub view {
   my ( $self, $name, $options ) = @_;
   my ( $cv, $cb ) = cvcb( $options, undef, $self->json_encoder );
   my ( $dname, $vname ) = split( '/', $name );
-  my $uri = $self->uri . "/_design/" . $dname . "/_view/" . $vname;
+  my $uri = $self->uri . "_design/" . $dname . "/_view/" . $vname;
   if ( $options->{keys} ) {
     my $body = { keys => $options->{keys} };
     http_request(
