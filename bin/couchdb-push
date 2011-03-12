@@ -17,11 +17,11 @@ my $__user     = undef;
 my $__password = undef;
 
 GetOptions(
-    "help|h"       => \$__help,
-    "verbose|v"    => \$__verbose,
-    "force|f"      => \$__force,
-    "user|u=s"     => \$__user,
-    "password|p=s" => \$__password,
+  "help|h"       => \$__help,
+  "verbose|v"    => \$__verbose,
+  "force|f"      => \$__force,
+  "user|u=s"     => \$__user,
+  "password|p=s" => \$__password,
 );
 
 my $json = JSON->new;
