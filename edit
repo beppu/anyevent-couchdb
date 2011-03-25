@@ -1,2 +1,7 @@
 #!/bin/bash
-${1:-vim} -p lib/AnyEvent/CouchDB.pm lib/AnyEvent/CouchDB/Database.pm bin/couchdb-push
+${1:-vim} -p \
+  lib/AnyEvent/CouchDB.pm \
+  lib/AnyEvent/CouchDB/Database.pm \
+  lib/AnyEvent/CouchDB/Exceptions.pm \
+  lib/AnyEvent/CouchDB/Stream.pm \
+  bin/couchdb-push
