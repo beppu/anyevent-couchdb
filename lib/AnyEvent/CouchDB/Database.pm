@@ -526,6 +526,11 @@ authentication to your requests if needed:
 
   my $res = $db->create({headers => {'Authorization' => 'Basic '.$aut}})->recv;
 
+B<UPDATE>:  You can now make authenticated requests by placing the username and
+password in the URI.
+
+  my $db = couchdb('http://user:s3kr3t@127.0.0.1:5984/mydb');
+
 =head2 Database Level Operations
 
 =head3 $cv = $db->create([ \%options ])
@@ -668,7 +673,7 @@ John BEPPU E<lt>beppu@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2008-2010 John BEPPU E<lt>beppu@cpan.orgE<gt>.
+Copyright (c) 2008-2011 John BEPPU E<lt>beppu@cpan.orgE<gt>.
 
 =head2 The "MIT" License
 

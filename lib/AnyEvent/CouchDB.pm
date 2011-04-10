@@ -2,7 +2,7 @@ package AnyEvent::CouchDB;
 
 use strict;
 use warnings;
-our $VERSION = '1.22';
+our $VERSION = '1.23';
 
 use JSON;
 use AnyEvent::HTTP;
@@ -472,7 +472,8 @@ Push documents from the filesystem to CouchDB
 
 =head2 Related Modules
 
-L<AnyEvent::CouchDB::Database>, L<AnyEvent::HTTP>, L<AnyEvent>
+L<AnyEvent::CouchDB::Database>, L<AnyEvent::CouchDB::Exceptions>,
+L<AnyEvent::HTTP>, L<AnyEvent>, L<Exception::Class>
 
 =head2 Other CouchDB-related Perl Modules
 
@@ -517,7 +518,7 @@ franck [http://github.com/franckcuny] (for feature enhancements)
 
 =head1 COPYRIGHT
 
-Copyright (c) 2008-2010 John BEPPU E<lt>beppu@cpan.orgE<gt>.
+Copyright (c) 2008-2011 John BEPPU E<lt>beppu@cpan.orgE<gt>.
 
 =head2 The "MIT" License
 
