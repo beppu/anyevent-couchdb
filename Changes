@@ -3,6 +3,11 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.23 2011-04-09
+  - Exception::Class based exceptions implemented in AnyEvent::CouchDB::Exceptions
+  - $options{header} is not deleted anymore
+  - $db->view passes authentication information
+
 1.22 2010-10-12
   - Reverted a change to the exception code that serialized the exception data to JSON.
 

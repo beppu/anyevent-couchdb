@@ -5,15 +5,17 @@ use warnings;
 no  warnings 'once';
 use JSON::XS;
 use AnyEvent::HTTP;
+use AnyEvent::CouchDB::Exceptions;
 use Data::Dump::Streamer;
 use URI::Escape qw( uri_escape uri_escape_utf8 );
 use IO::All;
+use MIME::Base64;
 
 our $default_json;
 
 # manual import ;-)
-*cvcb         = *AnyEvent::CouchDB::cvcb;
-*default_json = *AnyEvent::CouchDB::default_json;
+*cvcb           = *AnyEvent::CouchDB::cvcb;
+*default_json   = *AnyEvent::CouchDB::default_json;
 *_build_headers = *AnyEvent::CouchDB::_build_headers;
 
 our $query = sub {
@@ -22,7 +24,7 @@ our $query = sub {
   my @buf;
   if (defined($options) && keys %$options) {
     for my $name (keys %$options) {
-      next if ($name eq 'error' || $name eq 'success');
+      next if ($name eq 'error' || $name eq 'success' || $name eq 'headers');
       my $value = $options->{$name};
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
         $value = ref($value)
@@ -57,7 +59,12 @@ our $code_to_string = sub {
 sub new {
   my ($class, $name, $uri, $json_encoder) = @_;
   $json_encoder ||= $default_json;
-  bless { name => $name, uri => $uri, json_encoder => $json_encoder } => $class;
+  my $self = bless { name => $name, uri => $uri, json_encoder => $json_encoder } => $class;
+  if (my $userinfo = $self->uri->userinfo) {
+    my $auth = encode_base64($userinfo, '');
+    $self->{http_auth} = "Basic $auth";
+  }
+  return $self;
 }
 
 sub name {
@@ -65,7 +72,7 @@ sub name {
 }
 
 sub uri {
-  $_[0]->{uri}->as_string;
+  $_[0]->{uri};
 }
 
 sub json_encoder {
@@ -515,7 +522,7 @@ authentication to your requests if needed:
 
   my $couchdb = couch("http://127.0.0.1:5984/");
   my $db      = $couchdb->db("mydb");
-  my $auth = encode_base64('user:s3kr3t', '');
+  my $auth    = encode_base64('user:s3kr3t', '');
 
   my $res = $db->create({headers => {'Authorization' => 'Basic '.$aut}})->recv;
 

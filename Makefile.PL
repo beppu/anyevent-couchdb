@@ -24,11 +24,11 @@ WriteMakefile (
   PREREQ_PM     => {
     'AnyEvent::HTTP'       => 1.11,
     'CouchDB::View'        => 0,
-    'JSON::XS'             => 0,
+    'JSON'                 => 0,
     'Data::Dump::Streamer' => 0,
+    'Exception::Class'     => 0,
     'IO::All'              => 0,
     'Scope::Guard'         => 0,
-    'Try::Tiny'            => 0,
     'Scalar::Util'         => 0,
   },
 );

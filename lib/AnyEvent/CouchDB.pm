@@ -4,29 +4,32 @@ use strict;
 use warnings;
 our $VERSION = '1.22';
 
-use JSON::XS;
+use JSON;
 use AnyEvent::HTTP;
 use AnyEvent::CouchDB::Database;
+use AnyEvent::CouchDB::Exceptions;
 use URI;
 use URI::Escape;
 use File::Basename;
+use MIME::Base64;
 
 use Exporter;
 use base 'Exporter';
 
 our @EXPORT = qw(couch couchdb);
 
-# default JSON encoder
-our $default_json = JSON::XS->new->utf8;
+# exception class shortcuts
+our $HTTPError = "AnyEvent::CouchDB::Exception::HTTPError";
+our $JSONError = "AnyEvent::CouchDB::Exception::JSONError";
 
-# arbitrary url support
+# default JSON encoder
+our $default_json = JSON->new->utf8;
+
+# arbitrary uri support
 sub _build_headers {
   my ( $self, $options ) = @_;
   my $headers = $options->{headers};
-  if ( ref($headers) eq 'HASH' ) {
-    delete $options->{headers};
-  }
-  else {
+  if ( ref($headers) ne 'HASH' ) {
     $headers = {};
   }
 
@@ -38,14 +41,29 @@ sub _build_headers {
     $headers->{'Content-Type'} = 'application/json';
   }
 
+  if ( exists $self->{http_auth} ) {
+    $headers->{'Authorization'} = $self->{http_auth};
+  }
+
   return $headers;
 }
 
+# return a condvar and callback 
+#
+# - The condvar is what most of our methods return.
+#   You can call recv on them to get data back, or
+#   you can call cb on them to assign an asynchronous callback to
+#   run WHEN the data comes back
+#
+# - The callback is the code that handles the 
+#   generic part of every CouchDB response.  This is given
+#   to AnyEvent::HTTP.
+#   
 sub cvcb {
   my ($options, $status, $json) = @_;
   $status ||= 200;
   $json   ||= $default_json;
-  my $cv = AnyEvent->condvar;
+  my $cv = AE::cv;
 
   # default success handler sends back decoded json response
   my $success = sub {
@@ -58,18 +76,30 @@ sub cvcb {
   my $error = sub {
     my ($headers, $response) = @_;
     $options->{error}->(@_) if ($options->{error});
-    $cv->croak([$headers, $response]);
+    $cv->croak(
+      $HTTPError->new(
+        message  => sprintf("%s - %s - %s", $headers->{Status}, $headers->{Reason}, $headers->{URL}),
+        headers  => $headers,
+        body     => $response
+      )
+    );
   };
 
   my $cb = sub {
     my ($body, $headers) = @_;
     my $response;
     eval { $response = $json->decode($body); };
-    $cv->croak(['decode_error', $@, $body, $headers]) if ($@);
+    $cv->croak(
+      $JSONError->new(
+        message  => $@,
+        headers  => $headers,
+        body     => $body
+      )
+    ) if ($@);
     if ($headers->{Status} >= $status and $headers->{Status} < 400) {
       $success->($response);
     } else {
-      $error->($headers, $response);
+      $error->($headers, $body);
     }
   };
   ($cv, $cb);
@@ -92,16 +122,21 @@ sub couchdb {
 }
 
 sub new {
-  my ($class, $url) = @_;
-  $url ||= 'http://localhost:5984/';
-  bless { url => URI->new($url) } => $class;
+  my ($class, $uri) = @_;
+  $uri ||= 'http://localhost:5984/';
+  my $self = bless { uri => URI->new($uri) } => $class;
+  if (my $userinfo = $self->{uri}->userinfo) {
+    my $auth = encode_base64($userinfo, '');
+    $self->{http_auth} = "Basic $auth";
+  }
+  return $self;
 }
 
 sub all_dbs {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
   http_request(
-    GET => $self->{url}.'_all_dbs',
+    GET => $self->{uri}.'_all_dbs',
     headers => $self->_build_headers($options),
     $cb
   );
@@ -110,7 +145,7 @@ sub all_dbs {
 
 sub db {
   my ($self, $name) = @_;
-  my $uri = $self->{url}->clone;
+  my $uri = $self->{uri}->clone;
   $uri->path(($uri->path ? $uri->path . $name : $name) . "/");
   AnyEvent::CouchDB::Database->new($name, $uri);
 }
@@ -119,7 +154,7 @@ sub info {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
   http_request(
-    GET => $self->{url}->as_string,
+    GET => $self->{uri}->as_string,
     headers => $self->_build_headers($options),
     $cb
   );
@@ -130,7 +165,7 @@ sub config {
   my ($self, $options) = @_;
   my ($cv, $cb) = cvcb($options);
   http_request(
-    GET => $self->{url} . '_config',
+    GET => $self->{uri} . '_config',
     headers => $self->_build_headers($options),
     $cb
   );
@@ -146,7 +181,7 @@ sub replicate {
   }
   my $body = $default_json->encode($replication);
   http_request(
-    POST    => $self->{url}.'_replicate',
+    POST    => $self->{uri}.'_replicate',
     headers => $self->_build_headers($options),
     body    => $body,
     $cb
@@ -179,6 +214,11 @@ Get an object representing a CouchDB database:
   $db    = couchdb('database');
   $db    = couchdb('http://somewhere.com:7777/database/');
 
+With authentication:
+
+  # user is the username and s3cret is the password
+  $db = couchdb('http://user:s3cret@somewhere.com:7777/database');
+
 Work with individual CouchDB documents;
 
   my $user = $db->open_doc('~larry')->recv;
@@ -191,7 +231,7 @@ Query a view:
 
 Finally, an asynchronous example:
 
-  # Calling cb will not block whereas calling recv *will* block.
+  # Calling cb allow you to set a callback that will run when results are available.
   $db->all_docs->cb(sub {
     my ($cv) = @_;
     print pp( $cv->recv ), "\n";
@@ -315,11 +355,11 @@ are not blessed into any kind of document class.
 
 =head2 Convenience Functions
 
-=head3 $couch = couch([ $url ]);
+=head3 $couch = couch([ $uri ]);
 
 This is a short-cut for:
 
-  AnyEvent::CouchDB->new($url)
+  AnyEvent::CouchDB->new($uri)
 
 and it is exported by default.  It will return a connection to a CouchDB server,
 and if you don't pass it a URL, it'll assume L<http://localhost:5984/>.  Thus,
@@ -327,7 +367,7 @@ you can type:
 
   $couch = couch;
 
-=head3 $db = couchdb($name_or_url);
+=head3 $db = couchdb($name_or_uri);
 
 This function will construct an L<AnyEvent::CouchDB::Database> object for you.
 If you only give it a name, it'll assume that the CouchDB server is at
@@ -338,7 +378,7 @@ This function is also exported by default.
 
 =head2 Object Construction
 
-=head3 $couch = AnyEvent::CouchDB->new([ $url ])
+=head3 $couch = AnyEvent::CouchDB->new([ $uri ])
 
 This method will instantiate an object that represents a CouchDB server.
 By default, it connects to L<http://localhost:5984/>, but you may explicitly

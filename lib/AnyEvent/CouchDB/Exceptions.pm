@@ -2,14 +2,14 @@ package AnyEvent::CouchDB::Exceptions;
 
 use Exception::Class (
   'AnyEvent::CouchDB::Exception' => {
-    fields => [ 'headers', 'response' ],
+    fields => [ 'headers', 'body' ],
   },
   'AnyEvent::CouchDB::Exception::JSONError' => {
     isa         => 'AnyEvent::CouchDB::Exception',
     description => 'JSON decoding error',
   },
   'AnyEvent::CouchDB::Exception::HTTPError' => {
-    isa         => 'AnyEvent::CouchDB::Exception'
+    isa         => 'AnyEvent::CouchDB::Exception',
     description => 'HTTP error',
   },
 );
@@ -26,6 +26,7 @@ AnyEvent::CouchDB::Exceptions - Exception::Class-based exceptions for AnyEvent::
 
 =head1 SYNOPSIS
 
+  use feature 'switch';
   use Try::Tiny;
   use Data::Dump 'pp';
   use AnyEvent::CouchDB;
@@ -45,7 +46,7 @@ AnyEvent::CouchDB::Exceptions - Exception::Class-based exceptions for AnyEvent::
       $_->show_trace(1);
       warn "$_";
       warn "HEADERS  : " . pp($_->headers);
-      warn "RESPONSE : " . $_->response;
+      warn "BODY     : " . $_->body;
     }
   };
 
@@ -82,9 +83,10 @@ by L<Exception::Class::Base>.
 This method will return the HTTP response headers if they were available at
 the time the exception was thrown.
 
-=head3 $e->response
+=head3 $e->body
 
 This method will return the HTTP response body if it was available at
 the time the exception was thrown.
+
 
 =cut
