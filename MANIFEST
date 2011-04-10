@@ -10,6 +10,7 @@ eg/pager
 eg/replicate.pl
 lib/AnyEvent/CouchDB.pm
 lib/AnyEvent/CouchDB/Database.pm
+lib/AnyEvent/CouchDB/Exceptions.pm
 lib/AnyEvent/CouchDB/Stream.pm
 Makefile.PL
 MANIFEST			This list of files
