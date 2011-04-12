@@ -33,7 +33,7 @@ AnyEvent::CouchDB::Exceptions - Exception::Class-based exceptions for AnyEvent::
 
   my $db = couchdb("food");
   try {
-    my $vegetables = $db->open('vegetables')->recv;
+    my $vegetables = $db->open_doc('vegetables')->recv;
   } 
   catch {
     when (ref eq 'AnyEvent::CouchDB::Exception::HTTPError') {
@@ -73,10 +73,10 @@ A subclass of AnyEvent::CouchDB::Exception for JSON decoding errors
 
 =head1 API
 
-=head2 Provided by AnyEvent::CouchDB::Exception
-
 This module provides the following methods in addition to the methods provided
 by L<Exception::Class::Base>.
+
+=head2 Accessors
 
 =head3 $e->headers
 
