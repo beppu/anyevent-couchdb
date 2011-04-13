@@ -395,7 +395,7 @@ sub view {
     );
   }
   else {
-    my $headers = $self->build_headers($options);
+    my $headers = $self->_build_headers($options);
     http_request(
       GET     => $uri . $query->($options),
       headers => $headers,
