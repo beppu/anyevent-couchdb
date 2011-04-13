@@ -3,6 +3,10 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.24 2011-04-13
+  - various fixes to $db->view 
+    (thanks to Matt Adams for the patch and Ryan Perry for the bug reports)
+
 1.23 2011-04-09
   - Exception::Class based exceptions implemented in AnyEvent::CouchDB::Exceptions
   - $options{header} is not deleted anymore
