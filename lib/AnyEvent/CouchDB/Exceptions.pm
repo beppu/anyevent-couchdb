@@ -76,7 +76,7 @@ A subclass of AnyEvent::CouchDB::Exception for JSON decoding errors
 This module provides the following methods in addition to the methods provided
 by L<Exception::Class::Base>.
 
-=head2 Accessors
+=head2 Additional Accessors
 
 =head3 $e->headers
 
