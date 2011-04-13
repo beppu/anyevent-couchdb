@@ -395,7 +395,12 @@ sub view {
     );
   }
   else {
-    http_get( $uri . $query->($options), $cb );
+    my $headers = $self->build_headers($options);
+    http_request(
+      GET     => $uri . $query->($options),
+      headers => $headers,
+      $cb
+    );
   }
   $cv;
 }
