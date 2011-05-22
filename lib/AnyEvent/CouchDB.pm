@@ -497,6 +497,10 @@ L<http://svn.apache.org/repos/asf/couchdb/trunk/share/www/script/jquery.couch.js
 
 L<http://github.com/beppu/anyevent-couchdb/tree/master>
 
+=head2 The Antepenultimate CouchDB Reference Card
+
+L<http://blog.fupps.com/2010/04/20/the-antepenultimate-couchdb-reference-card/>
+
 =head2 The Reason for Existence
 
 AnyEvent::CouchDB exists, because I needed a non-blocking CouchDB client that
