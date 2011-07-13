@@ -2,7 +2,7 @@ package AnyEvent::CouchDB;
 
 use strict;
 use warnings;
-our $VERSION = '1.24';
+our $VERSION = '1.25';
 
 use JSON;
 use AnyEvent::HTTP;
@@ -519,6 +519,8 @@ Yuval Kogman (for bug fixes)
 Michael Zedeler (for bug fixes)
 
 franck [http://github.com/franckcuny] (for feature enhancements)
+
+Luke Closs (for bug fixes)
 
 =head1 COPYRIGHT
 
