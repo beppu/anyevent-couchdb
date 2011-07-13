@@ -111,7 +111,7 @@ sub couch {
 
 sub couchdb {
   my $db = shift;
-  if ($db =~ /^http:/) {
+  if ($db =~ /^https?:/) {
     $db .= '/' if ($db !~ /\/$/);
     my $uri  = URI->new($db);
     my $name = basename($db);
