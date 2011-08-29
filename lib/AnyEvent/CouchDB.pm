@@ -520,6 +520,8 @@ Michael Zedeler (for bug fixes)
 
 franck [http://github.com/franckcuny] (for feature enhancements)
 
+Luke Closs (for bug fixes)
+
 =head1 COPYRIGHT
 
 Copyright (c) 2008-2011 John BEPPU E<lt>beppu@cpan.orgE<gt>.

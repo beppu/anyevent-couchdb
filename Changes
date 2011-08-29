@@ -3,10 +3,13 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
-1.25 2011-08-29
+1.26 2011-08-29
   - RT#70506 save_doc doesn't update attachment stubs
   - RT#70480 open_doc(undef) returns db status
   - RT#70425 AnyEvent::CouchDB::Stream enhancement
+
+1.25 2011-07-13
+  - support for https couches (by Luke Closs)
 
 1.24 2011-04-13
   - various fixes to $db->view 
