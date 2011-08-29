@@ -3,7 +3,7 @@ package AnyEvent::CouchDB::Database;
 use strict;
 use warnings;
 no  warnings 'once';
-use JSON::XS;
+use JSON;
 use AnyEvent::HTTP;
 use AnyEvent::CouchDB::Exceptions;
 use Data::Dump::Streamer;
@@ -276,7 +276,7 @@ sub attach {
       $doc->{_attachments}->{$attachment} = {
         'content_type' => $options->{type},
         'length'       => length($body),
-        'stub'         => JSON::XS::true,
+        'stub'         => JSON::true,
       };
     };
   }
@@ -289,7 +289,7 @@ sub attach {
       $doc->{_attachments}->{$attachment} = {
         'content_type' => $options->{type},
         'length'       => length($body),
-        'stub'         => JSON::XS::true,
+        'stub'         => JSON::true,
       };
     };
   }
