@@ -12,6 +12,10 @@ use Exception::Class (
     isa         => 'AnyEvent::CouchDB::Exception',
     description => 'HTTP error',
   },
+  'AnyEvent::CouchDB::Exception::UndefinedDocument' => {
+    isa         => 'AnyEvent::CouchDB::Exception',
+    description => 'Operation attempted on an undefined document',
+  },
 );
 
 AnyEvent::CouchDB::Exception->Trace($ENV{ANYEVENT_COUCHDB_DEBUG});

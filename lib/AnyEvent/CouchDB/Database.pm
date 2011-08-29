@@ -157,6 +157,11 @@ sub all_docs_by_seq {
 
 sub open_doc {
   my ( $self, $doc_id, $options ) = @_;
+  if ( not defined $doc_id ) {
+    AnyEvent::CouchDB::Exception::UndefinedDocument->throw(
+      "An undefined id was passed to open_doc()."
+    );
+  }
   my ( $cv, $cb ) = cvcb( $options, undef, $self->json_encoder );
   my $id = uri_escape_utf8($doc_id);
   if ( $id =~ qr{^_design%2F} ) {
