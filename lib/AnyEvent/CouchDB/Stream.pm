@@ -17,6 +17,7 @@ sub new {
     my $db           = delete $args{database};
     my $timeout      = delete $args{timeout};
     my $filter       = delete $args{filter};
+    my $since        = delete $args{since};
     my $on_change    = delete $args{on_change};
     my $on_error     = delete $args{on_error} || sub { die @_ };
     my $on_eof       = delete $args{on_eof} || sub { };
@@ -26,7 +27,7 @@ sub new {
 
     my $uri = URI->new($server);
     $uri->path( $db. '/_changes' );
-    $uri->query_form( filter => $filter, feed => "continuous" );
+    $uri->query_form( filter => $filter, feed => "continuous", since => $since );
 
     my $self = bless {}, $class;
 

@@ -3,7 +3,7 @@ package AnyEvent::CouchDB::Database;
 use strict;
 use warnings;
 no  warnings 'once';
-use JSON::XS;
+use JSON;
 use AnyEvent::HTTP;
 use AnyEvent::CouchDB::Exceptions;
 use Data::Dump::Streamer;
@@ -157,6 +157,11 @@ sub all_docs_by_seq {
 
 sub open_doc {
   my ( $self, $doc_id, $options ) = @_;
+  if ( not defined $doc_id ) {
+    AnyEvent::CouchDB::Exception::UndefinedDocument->throw(
+      "An undefined id was passed to open_doc()."
+    );
+  }
   my ( $cv, $cb ) = cvcb( $options, undef, $self->json_encoder );
   my $id = uri_escape_utf8($doc_id);
   if ( $id =~ qr{^_design%2F} ) {
@@ -186,6 +191,25 @@ sub open_docs {
 
 sub save_doc {
   my ( $self, $doc, $options ) = @_;
+
+  # create attachment stubs for new inlined attachments
+  my $_attachments = sub {
+    my ( $doc ) = @_;
+    my $_a = $doc->{_attachments};
+    return unless defined $_a;
+    my $revpos = $doc->{_rev};
+    $revpos =~ s/-.*$//;
+    for my $key (keys %$_a) {
+      if ( exists($_a->{$key}{data}) ) {
+        my $file = $_a->{$key};
+        $file->{length} = length(decode_base64($file->{data}));
+        $file->{revpos} = $revpos;
+        $file->{stub}   = JSON::true();
+        delete $file->{data};
+      }
+    }
+  };
+
   if ( $options->{success} ) {
     my $orig = $options->{success};
     $options->{success} = sub {
@@ -193,6 +217,7 @@ sub save_doc {
       $orig->($resp);
       $doc->{_id}  = $resp->{id};
       $doc->{_rev} = $resp->{rev};
+      $_attachments->($doc);
     };
   }
   else {
@@ -200,6 +225,7 @@ sub save_doc {
       my ($resp) = @_;
       $doc->{_id}  = $resp->{id};
       $doc->{_rev} = $resp->{rev};
+      $_attachments->($doc);
     };
   }
   my ( $cv, $cb ) = cvcb( $options, 201, $self->json_encoder );
@@ -250,7 +276,7 @@ sub attach {
       $doc->{_attachments}->{$attachment} = {
         'content_type' => $options->{type},
         'length'       => length($body),
-        'stub'         => JSON::XS::true,
+        'stub'         => JSON::true,
       };
     };
   }
@@ -263,7 +289,7 @@ sub attach {
       $doc->{_attachments}->{$attachment} = {
         'content_type' => $options->{type},
         'length'       => length($body),
-        'stub'         => JSON::XS::true,
+        'stub'         => JSON::true,
       };
     };
   }
