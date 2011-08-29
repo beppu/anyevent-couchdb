@@ -186,6 +186,25 @@ sub open_docs {
 
 sub save_doc {
   my ( $self, $doc, $options ) = @_;
+
+  # create attachment stubs for new inlined attachments
+  my $_attachments = sub {
+    my ( $doc ) = @_;
+    my $_a = $doc->{_attachments};
+    return unless defined $_a;
+    my $revpos = $doc->{_rev};
+    $revpos =~ s/-.*$//;
+    for my $key (keys %$_a) {
+      if ( exists($_a->{$key}{data}) ) {
+        my $file = $_a->{$key};
+        $file->{length} = length(decode_base64($file->{data}));
+        $file->{revpos} = $revpos;
+        $file->{stub}   = JSON::true();
+        delete $file->{data};
+      }
+    }
+  };
+
   if ( $options->{success} ) {
     my $orig = $options->{success};
     $options->{success} = sub {
@@ -193,6 +212,7 @@ sub save_doc {
       $orig->($resp);
       $doc->{_id}  = $resp->{id};
       $doc->{_rev} = $resp->{rev};
+      $_attachments->($doc);
     };
   }
   else {
@@ -200,6 +220,7 @@ sub save_doc {
       my ($resp) = @_;
       $doc->{_id}  = $resp->{id};
       $doc->{_rev} = $resp->{rev};
+      $_attachments->($doc);
     };
   }
   my ( $cv, $cb ) = cvcb( $options, 201, $self->json_encoder );
