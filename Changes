@@ -3,6 +3,12 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.27 2011-09-01
+  - added a workaround for a strange bug in
+    AnyEvent::CouchDB::Stream where strange characters
+    would appear in between JSON objects in the stream.
+  - added more people to the credits
+
 1.26 2011-08-29
   - RT#70506 save_doc doesn't update attachment stubs
   - RT#70480 open_doc(undef) returns db status

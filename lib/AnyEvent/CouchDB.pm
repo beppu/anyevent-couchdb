@@ -2,7 +2,7 @@ package AnyEvent::CouchDB;
 
 use strict;
 use warnings;
-our $VERSION = '1.26';
+our $VERSION = '1.27';
 
 use JSON;
 use AnyEvent::HTTP;
