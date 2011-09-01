@@ -522,6 +522,10 @@ franck [http://github.com/franckcuny] (for feature enhancements)
 
 Luke Closs (for bug fixes)
 
+Michael Henson (bug fixes)
+
+James Howe (bug reports)
+
 =head1 COPYRIGHT
 
 Copyright (c) 2008-2011 John BEPPU E<lt>beppu@cpan.orgE<gt>.
