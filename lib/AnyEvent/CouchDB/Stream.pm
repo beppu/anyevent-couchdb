@@ -17,7 +17,7 @@ sub new {
     my $db           = delete $args{database};
     my $timeout      = delete $args{timeout};
     my $filter       = delete $args{filter};
-    my $since        = delete $args{since};
+    my $since        = delete $args{since} || 1;
     my $on_change    = delete $args{on_change};
     my $on_error     = delete $args{on_error} || sub { die @_ };
     my $on_eof       = delete $args{on_eof} || sub { };
@@ -49,7 +49,7 @@ sub new {
                 my ($headers) = @_;
                 if ( $headers->{Status} ne '200' ) {
                     return $on_error->(
-                        "$headers->{Status}: $headers->{Reason}");
+                        "$headers->{Status}: $headers->{Reason}: $uri");
                 }
                 return 1;
             },
@@ -74,7 +74,14 @@ sub new {
                         my ( $handle, $json ) = @_;
                         $set_timeout->();
                         if ($json) {
-                            $on_change->(JSON::decode_json($json));
+                            try {
+                              $on_change->(JSON::decode_json($json));
+                            } 
+                            catch {
+                              # I'm not sure why, but sometimes
+                              # some weird characters show up
+                              # in between the JSON objects.
+                            };
                         }
                         else {
                             $on_keepalive->();
