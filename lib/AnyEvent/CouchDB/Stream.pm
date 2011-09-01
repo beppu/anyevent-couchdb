@@ -140,6 +140,10 @@ URL of the CouchDB host
 
 Name of the CouchDB database
 
+=item B<since>
+
+Number to fetch changes from.
+
 =item B<filter>
 
 Name of the filter to execute on this notifier
