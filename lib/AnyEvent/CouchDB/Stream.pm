@@ -7,6 +7,7 @@ use AnyEvent::HTTP;
 use Scalar::Util;
 use JSON;
 use Try::Tiny;
+use MIME::Base64;
 
 our $VERSION = '0.01';
 
@@ -28,6 +29,10 @@ sub new {
     my $uri = URI->new($server);
     $uri->path( $db. '/_changes' );
     $uri->query_form( filter => $filter, feed => "continuous", since => $since );
+
+    if (my $userinfo = $uri->userinfo) {
+        $headers->{Authorization} = 'Basic ' . encode_base64($userinfo, '');
+    }
 
     my $self = bless {}, $class;
 
