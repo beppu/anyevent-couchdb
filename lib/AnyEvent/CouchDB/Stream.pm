@@ -7,6 +7,7 @@ use AnyEvent::HTTP;
 use Scalar::Util;
 use JSON;
 use Try::Tiny;
+use MIME::Base64;
 
 our $VERSION = '0.01';
 
@@ -28,6 +29,10 @@ sub new {
     my $uri = URI->new($server);
     $uri->path( $db. '/_changes' );
     $uri->query_form( filter => $filter, feed => "continuous", since => $since );
+
+    if (my $userinfo = $uri->userinfo) {
+        $headers->{Authorization} = 'Basic ' . encode_base64($userinfo, '');
+    }
 
     my $self = bless {}, $class;
 
@@ -134,31 +139,45 @@ AnyEvent::CouchDB::Stream is an interface to the CouchDB B<changes> database API
 
 =item B<url>
 
-URL of the CouchDB host
+URL of the CouchDB host.
 
 =item B<database>
 
-Name of the CouchDB database
+Name of the CouchDB database.
+
+=item B<timeout>
+
+Number of seconds to wait before timing out.  On timeout, The on_error 
+code ref will be called with an argument of 'timeout'.
 
 =item B<filter>
 
-Name of the filter to execute on this notifier
+Name of the filter to execute on this notifier.
+
+=item B<since>
+
+Number to fetch changes from. Defaults to 1.
 
 =item B<on_change>
 
-A code ref to execute when a change notification is received
+A code ref to execute when a change notification is received. It is mandatory.
 
 =item B<on_keepalive>
 
-A code ref to execute when keepalive is called
+A code ref to execute when keepalive is called.
 
 =item B<on_error>
 
-A code ref to execute on error
+A code ref to execute on error. Code ref is passed the error message.
 
 =item B<on_eof>
 
 A code ref to execute on eof
+
+=item B<headers>
+
+An optional hashref of headers that should be used for the HTTP request.
+Defaults to C< { 'Content-Type' => 'application/json' } >.
 
 =back
 
