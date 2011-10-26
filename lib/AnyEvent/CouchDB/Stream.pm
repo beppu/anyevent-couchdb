@@ -9,7 +9,7 @@ use JSON;
 use Try::Tiny;
 use MIME::Base64;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new {
     my $class        = shift;
@@ -20,6 +20,7 @@ sub new {
     my $filter       = delete $args{filter};
     my $since        = delete $args{since} || 1;
     my $on_change    = delete $args{on_change};
+    my $heartbeat    = delete $args{heartbeat} || 5000;
     my $on_error     = delete $args{on_error} || sub { die @_ };
     my $on_eof       = delete $args{on_eof} || sub { };
     my $on_keepalive = delete $args{on_keepalive} || sub { };
@@ -28,7 +29,7 @@ sub new {
 
     my $uri = URI->new($server);
     $uri->path( $db. '/_changes' );
-    $uri->query_form( filter => $filter, feed => "continuous", since => $since );
+    $uri->query_form( filter => $filter, feed => "continuous", since => $since, heartbeat => $heartbeat );
 
     if (my $userinfo = $uri->userinfo) {
         $headers->{Authorization} = 'Basic ' . encode_base64($userinfo, '');
@@ -178,6 +179,10 @@ A code ref to execute on eof
 
 An optional hashref of headers that should be used for the HTTP request.
 Defaults to C< { 'Content-Type' => 'application/json' } >.
+
+=item B<heartbeat>
+
+The interval in milliseconds between newlines sent from the server to ensure that an open connection is still being maintained
 
 =back
 
