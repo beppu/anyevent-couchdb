@@ -3,6 +3,10 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.28 2011-10-25
+  - stream module lacked functionality to prevent socket closing.
+    closes RT #71601 (by http://benbot.myopenid.com (Mike Zedeler?))
+
 1.27 2011-09-01
   - added a workaround for a strange bug in
     AnyEvent::CouchDB::Stream where strange characters
