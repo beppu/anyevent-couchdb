@@ -264,6 +264,7 @@ sub remove_doc {
 sub attach {
   my ( $self, $doc, $attachment, $options ) = @_;
   my $body < io( $options->{src} );
+  my $length = length($body);
   $options->{type} ||= 'text/plain';
   if ( $options->{success} ) {
     my $orig = $options->{success};
@@ -275,7 +276,7 @@ sub attach {
       $doc->{_attachments} ||= {};
       $doc->{_attachments}->{$attachment} = {
         'content_type' => $options->{type},
-        'length'       => length($body),
+        'length'       => $length,
         'stub'         => JSON::true,
       };
     };
@@ -288,7 +289,7 @@ sub attach {
       $doc->{_attachments} ||= {};
       $doc->{_attachments}->{$attachment} = {
         'content_type' => $options->{type},
-        'length'       => length($body),
+        'length'       => $length,
         'stub'         => JSON::true,
       };
     };
