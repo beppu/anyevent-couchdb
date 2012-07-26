@@ -18,7 +18,7 @@ sub new {
     my $db           = delete $args{database};
     my $timeout      = delete $args{timeout};
     my $filter       = delete $args{filter};
-    my $since        = delete $args{since} || 1;
+    my $since        = delete $args{since} || 0;
     my $on_change    = delete $args{on_change};
     my $heartbeat    = delete $args{heartbeat} || 5000;
     my $on_error     = delete $args{on_error} || sub { die @_ };
@@ -26,10 +26,11 @@ sub new {
     my $on_keepalive = delete $args{on_keepalive} || sub { };
     my $headers      = delete $args{headers}
         || { 'Content-Type' => 'application/json' };
+    my $include_docs = delete $args{include_docs};
 
     my $uri = URI->new($server);
     $uri->path( $db. '/_changes' );
-    $uri->query_form( filter => $filter, feed => "continuous", since => $since, heartbeat => $heartbeat );
+    $uri->query_form( filter => $filter, feed => "continuous", since => $since, heartbeat => $heartbeat, include_docs => $include_docs );
 
     if (my $userinfo = $uri->userinfo) {
         $headers->{Authorization} = 'Basic ' . encode_base64($userinfo, '');

@@ -3,6 +3,10 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.29 2012-07-25
+  - Applied patch from Dave Williams to fix multiple issues
+    with AnyEvent::CouchDB::Stream.
+
 1.28 2011-10-25
   - stream module lacked functionality to prevent socket closing.
     closes RT #71601 (by http://benbot.myopenid.com (Mike Zedeler?))
