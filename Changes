@@ -3,6 +3,9 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.30
+  - finally fixed that annoying connection timeout problem (thanks to Walter Werner)
+
 1.29 2012-07-25
   - Applied patch from Dave Williams to fix multiple issues
     with AnyEvent::CouchDB::Stream.
