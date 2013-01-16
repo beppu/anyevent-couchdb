@@ -378,10 +378,19 @@ sub detach {
 sub bulk_docs {
   my ( $self, $docs, $options ) = @_;
   my ( $cv, $cb ) = cvcb( $options, undef, $self->json_encoder );
+
+  my %props = (); ## _bulk_docs properties go to the request body
+  foreach my $property (qw(all_or_nothing new_edits)) {
+    if (my $value = delete $options->{$property}) {
+      ## convert the respective value to the JSON boolean type
+      $props{$property} = $value eq 'false' ? JSON::false() : JSON::true();
+    }
+  }
+
   http_request(
     POST    => $self->uri . '_bulk_docs',
     headers => $self->_build_headers($options),
-    body    => $self->json( { docs => $docs } ),
+    body    => $self->json( { %props, docs => $docs } ),
     $cb
   );
   $cv;
