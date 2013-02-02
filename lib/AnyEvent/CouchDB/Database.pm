@@ -27,11 +27,7 @@ our $query = sub {
       next if ($name eq 'error' || $name eq 'success' || $name eq 'headers');
       my $value = $options->{$name};
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
-        $value = ref($value)
-          ? uri_escape($json->encode($value))
-          : (defined $value)
-            ? uri_escape_utf8(qq{"$value"})
-            : 'null';
+        $value = uri_escape( $json->encode($value) );
       } else {
         $value = uri_escape_utf8($value);
       }
