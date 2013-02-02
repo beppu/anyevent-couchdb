@@ -27,11 +27,7 @@ our $query = sub {
       next if ($name eq 'error' || $name eq 'success' || $name eq 'headers');
       my $value = $options->{$name};
       if ($name eq 'key' || $name eq 'startkey' || $name eq 'endkey') {
-        $value = ref($value)
-          ? uri_escape($json->encode($value))
-          : (defined $value)
-            ? uri_escape_utf8(qq{"$value"})
-            : 'null';
+        $value = uri_escape( $json->encode($value) );
       } else {
         $value = uri_escape_utf8($value);
       }
@@ -378,10 +374,19 @@ sub detach {
 sub bulk_docs {
   my ( $self, $docs, $options ) = @_;
   my ( $cv, $cb ) = cvcb( $options, undef, $self->json_encoder );
+
+  my %props = (); ## _bulk_docs properties go to the request body
+  foreach my $property (qw(all_or_nothing new_edits)) {
+    if (my $value = delete $options->{$property}) {
+      ## convert the respective value to the JSON boolean type
+      $props{$property} = $value eq 'false' ? JSON::false() : JSON::true();
+    }
+  }
+
   http_request(
     POST    => $self->uri . '_bulk_docs',
     headers => $self->_build_headers($options),
-    body    => $self->json( { docs => $docs } ),
+    body    => $self->json( { %props, docs => $docs } ),
     $cb
   );
   $cv;
