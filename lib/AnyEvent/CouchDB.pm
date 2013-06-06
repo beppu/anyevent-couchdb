@@ -23,7 +23,7 @@ our $HTTPError = "AnyEvent::CouchDB::Exception::HTTPError";
 our $JSONError = "AnyEvent::CouchDB::Exception::JSONError";
 
 # default JSON encoder
-our $default_json = JSON->new->utf8;
+our $default_json = JSON->new->allow_nonref->utf8;
 
 # arbitrary uri support
 sub _build_headers {
@@ -529,7 +529,9 @@ James Howe (bug reports)
 
 Dave Williams (bug fixes)
 
-Walter Werner (buf fixes)
+Walter Werner (bug fixes)
+
+Maroun NAJM (bulk doc enhancements)
 
 =head1 COPYRIGHT
 
