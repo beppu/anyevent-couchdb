@@ -3,6 +3,10 @@ UNRELEASED
   * write more tests
   * need to improve startkey/endkey/key JSON encoding.
 
+1.31 2013-06-05
+  - merged Maroun NAJM's patch for bulk_doc properties
+    http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API#Transactional_Semantics_with_Bulk_Updates
+
 1.30
   - finally fixed that annoying connection timeout problem (thanks to Walter Werner)
 
