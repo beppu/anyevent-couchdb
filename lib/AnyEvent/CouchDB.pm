@@ -529,7 +529,9 @@ James Howe (bug reports)
 
 Dave Williams (bug fixes)
 
-Walter Werner (buf fixes)
+Walter Werner (bug fixes)
+
+Maroun NAJM (bulk doc enhancements)
 
 =head1 COPYRIGHT
 
